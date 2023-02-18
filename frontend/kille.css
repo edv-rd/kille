@@ -1,0 +1,18 @@
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+
+.card {
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  padding: 20px;
+  margin: 5px;
+}
+
+.card p {
+  font-size: 12px;
+}

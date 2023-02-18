@@ -9,6 +9,8 @@ export default function App() {
   return game ? (
     <Game game={game} />
   ) : (
+    <Game game="666" />
+    /*
     <Form.Group>
       <Form.Control
         type="text"
@@ -21,5 +23,6 @@ export default function App() {
         joina spel
       </Button>
     </Form.Group>
+    */
   );
 }
