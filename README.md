@@ -9,7 +9,11 @@ att göra:
 * join rum tar id manuellt
 * socket-io kod för att skapa rum
 * gör en lek och blanda (backend)
-* den som ska starta spelet trycker knapp
+* rum renderas frontend
+* det man ser på sin skärm är ett kort endast och en textruta
+* på textrutan: hur mycket man har att satsa med
+
+* den som ska starta spelet trycker knapp "starta"
 * man satsar?
 * man får kort av deck
 * man väljer byt eller släng
