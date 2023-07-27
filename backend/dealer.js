@@ -6,7 +6,7 @@ function showDeck() {
   let cardsArray = [];
 
   deckStruct.forEach((card) => {
-    cardsArray.push(card.name);
+    cardsArray.push(card);
   });
 
   return cardsArray;

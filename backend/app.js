@@ -3,36 +3,49 @@ const dealer = require("./dealer");
 const express = require("express");
 const app = express();
 const port = 3000;
+const socketPort = 3001;
+const http = require("http");
+const { Server } = require("socket.io")
+const cors = require("cors");
 
 let deckStruct = require("./deck.json");
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content, Accept, Content-Type, Authorization"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-  );
-  next();
-});
+app.use(cors());
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://127.0.0.1:5173",
+    methods: ["GET", "POST"],
+  }
+})
+
+io.on("connection", (socket) => {
+  console.log(`någon connectade: ${socket.id}`)
+  io.to(socket.id).emit("server_id", socket.id);
+
+  socket.on("join_room", (data) => {
+    console.log(`${socket.id} joinade ${data.room}`)
+
+    socket.join(data.room);
+    io.in(data.room).emit("recieve_message", `${socket.id} joinade ${data.room}`)
+  })
+
+  socket.on("send_message", (data) => {
+    console.log(`fått meddelande ${data.message} från ${socket.id} i rum ${data.room}`)
+    io.in(data.room).emit("recieve_message", data.message)
+  })
+})
 
 app.get("/", (req, res) => {
   res.send("kille!");
 });
 
-app.get("/deck/create", (req, res) => {
-  let deckStructArray = JSON.parse(JSON.stringify(deckStruct));
-
-  let createdDeck = deckStructArray.map((card) => card);
-
-  res.send(createdDeck);
-});
-
-app.get("/deck/deal", (req, res) => {});
-
 app.listen(port, () => {
   console.log(`kille server igång på ${port}`);
 });
+
+server.listen(socketPort, () => {
+  console.log(`kille socket server igång på ${socketPort}`)
+})

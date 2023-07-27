@@ -1,34 +1,43 @@
-import ShowDeck from "./components/ShowDeck";
-import ShowCard from "./components/ShowCard";
-import DealCard from "./components/DealCard";
-import axios from "axios";
 import { useState, useEffect } from "react";
+import socket from "./utils/socket.js";
 
-export default function Game({ game }) {
-  const [cards, setCards] = useState([]);
+const Game = ({ room }) => {
+  const [chatMessage, setChatMessage] = useState("");
+  const [chatMessages, setChatMessages] = useState([]);
+
+  const sendChatMessage = () => {
+    socket.emit("send_message", { message: chatMessage, room });
+  };
+
+  const handleOnChange = (event) => {
+    setChatMessage(event.target.value);
+  };
 
   useEffect(() => {
-    const configuration = {
-      method: "get",
-      url: "http://localhost:3000/deck/create",
-    };
-    axios(configuration)
-      .then((response) => {
-        setCards(response.data);
-      })
-      .catch((err) => {
-        err = new Error(err.message);
-      });
-  }, []);
+    socket.emit("join_room", { room });
+
+    socket.on("recieve_message", (message) => {
+      setChatMessages((oldArray) => [...oldArray, message]);
+    });
+  }, [socket]);
 
   return (
     <>
       <h1>kille online!</h1>
-      <h2>spelar i game {game}</h2>
-      <h3>skapat nytt deck med id {game}</h3>
-      <ShowDeck {...cards} />
-      <ShowCard />
-      <DealCard />
+      <h2>spelar i game {room}</h2>
+      <input
+        type="text"
+        onChange={handleOnChange}
+        value={chatMessage}
+        placeholder="chat"
+      />
+
+      <button onClick={sendChatMessage}>Send chat</button>
+      {chatMessages.map((message) => {
+        return <h2>{message}</h2>;
+      })}
     </>
   );
-}
+};
+
+export default Game;

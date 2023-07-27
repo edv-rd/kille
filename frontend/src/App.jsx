@@ -1,28 +1,19 @@
-import { useState } from "react";
-import { Button, Form } from "react-bootstrap";
+import { useEffect, useRef } from "react";
+import io from "socket.io-client";
 import Game from "./Game.jsx";
+import styled from "styled-components";
 
-export default function App() {
-  const [game, setGame] = useState("");
-  const [typedGame, setTypedGame] = useState("");
+const StyledWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
 
-  return game ? (
-    <Game game={game} />
-  ) : (
-    <Game game="666" />
-    /*
-    <Form.Group>
-      <Form.Control
-        type="text"
-        name="game"
-        value={typedGame}
-        onChange={(e) => setTypedGame(e.target.value)}
-      />
-
-      <Button type="submit" onClick={() => setGame(typedGame)}>
-        joina spel
-      </Button>
-    </Form.Group>
-    */
+const App = () => {
+  return (
+    <StyledWrapper>
+      <Game room="666" />
+    </StyledWrapper>
   );
-}
+};
+
+export default App;
