@@ -35,8 +35,6 @@ const Game = ({ room, name }) => {
   };
 
   useEffect(() => {
-    socket.emit("join_room", { room });
-
     socket.on("recieve_message", (message) => {
       setChatMessages((oldArray) => [...oldArray, message]);
     });

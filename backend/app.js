@@ -32,6 +32,10 @@ io.on("connection", (socket) => {
       "recieve_message",
       `${socket.name} joinade ${data.room}`
     );
+    io.to(socket.id).emit(
+      "recieve_room",
+      data.room
+    );
   });
 
   socket.on("send_message", (data) => {

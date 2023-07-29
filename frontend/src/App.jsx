@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 const StyledWrapper = styled.div`
   display: flex;
   flex-direction: column;
+  align-items: center;
 `;
 
 const StyledContainer = styled.div`
@@ -17,22 +18,28 @@ const App = () => {
   const [userName, setUserName] = useState("");
   const [typedUserName, setTypedUserName] = useState("");
 
-  const handleUserName = () => {
+  const [roomNumber, setRoomNumber] = useState("");
+  const [typedRoomNumber, setTypedRoomNumber] = useState("1");
+
+  const handleJoin = () => {
     socket.emit("change_name", { name: typedUserName });
+    socket.emit("join_room", { room: typedRoomNumber });
   };
 
   useEffect(() => {
-    console.log("username?");
     socket.on("recieve_name", (userName) => {
-      console.log("recieved username", userName);
       setUserName(userName);
+    });
+
+    socket.on("recieve_room", (room) => {
+      setRoomNumber(room);
     });
   }, [socket]);
 
   return (
     <StyledWrapper>
-      {userName ? (
-        <Game room="666" name={userName} />
+      {userName && roomNumber ? (
+        <Game room={roomNumber} name={userName} />
       ) : (
         <StyledContainer>
           vad heter du?
@@ -42,7 +49,18 @@ const App = () => {
             value={typedUserName}
             onChange={(event) => setTypedUserName(event.target.value)}
           />
-          <button type="button" onClick={handleUserName}>
+          vilket rum?
+          <input
+            type="text"
+            name="roomNumber"
+            value={typedRoomNumber}
+            onChange={(event) => setTypedRoomNumber(event.target.value)}
+          />
+          <button
+            type="button"
+            onClick={handleJoin}
+            disabled={!typedUserName && !typedRoomNumber}
+          >
             enter
           </button>
         </StyledContainer>
