@@ -3,18 +3,35 @@ import socket from "./utils/socket.js";
 import GameBoard from "./GameBoard.jsx";
 import styled from "styled-components";
 
-const Game = ({ room }) => {
+const StyledWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+`;
+
+const StyledContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+`;
+
+const StyledChatContainer = styled(StyledContainer)`
+  width: 100%;
+`;
+
+const Game = ({ room, name }) => {
   const [chatMessage, setChatMessage] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
   const [gameState, setGameState] = useState("lobby");
 
   const sendChatMessage = () => {
-    socket.emit("send_message", { message: chatMessage, room });
+    socket.emit("send_message", { message: chatMessage, room, name });
     setChatMessage("");
   };
 
   const startGame = () => {
-    socket.emit("change_state", { state: "game", room });
+    socket.emit("change_state", { state: "game", room, name });
   };
 
   useEffect(() => {
@@ -30,31 +47,36 @@ const Game = ({ room }) => {
   }, [socket]);
 
   return (
-    <>
+    <StyledWrapper>
       <h1>kille online!</h1>
       <h2>
-        spelar i game {room}({gameState})
+        {name} spelar i game {room}({gameState})
       </h2>
+      <StyledContainer>
+        {gameState == "game" ? (
+          <GameBoard />
+        ) : (
+          <button onClick={startGame}>Start game</button>
+        )}
+      </StyledContainer>
+      <StyledContainer>
+        <input
+          type="text"
+          onChange={(event) => setChatMessage(event.target.value)}
+          value={chatMessage}
+          placeholder="chat"
+        />
 
-      {gameState == "game" ? (
-        <GameBoard />
-      ) : (
-        <button onClick={startGame}>Start game</button>
-      )}
-      <input
-        type="text"
-        onChange={(event) => setChatMessage(event.target.value)}
-        value={chatMessage}
-        placeholder="chat"
-      />
-
-      <button onClick={sendChatMessage} disabled={!chatMessage.length}>
-        Send chat
-      </button>
-      {chatMessages.map((message) => {
-        return <p>{message}</p>;
-      })}
-    </>
+        <button onClick={sendChatMessage} disabled={!chatMessage.length}>
+          Send chat
+        </button>
+        <StyledChatContainer>
+          {chatMessages.map((message) => {
+            return <p>{message}</p>;
+          })}
+        </StyledChatContainer>
+      </StyledContainer>
+    </StyledWrapper>
   );
 };
 

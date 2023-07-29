@@ -30,23 +30,29 @@ io.on("connection", (socket) => {
     socket.join(data.room);
     io.in(data.room).emit(
       "recieve_message",
-      `${socket.id} joinade ${data.room}`
+      `${socket.name} joinade ${data.room}`
     );
   });
 
   socket.on("send_message", (data) => {
-    console.log(`${socket.id} säger: ${data.message}`);
+    console.log(`${socket.name} säger: ${data.message}`);
     io.in(data.room).emit(
       "recieve_message",
-      `${socket.id} säger: ${data.message}`
+      `${socket.name} säger: ${data.message}`
     );
   });
+
+  socket.on("change_name", (data) => {
+    console.log(`${socket.id} vill byta namn till ${data.name}`);
+    socket.name = data.name;
+    io.to(socket.id).emit("recieve_name", data.name);
+  })
 
   socket.on("change_state", (data) => {
     console.log(`${socket.id} försöker byta state till ${data.state}`);
     io.in(data.room).emit(
       "recieve_message",
-      `${socket.id} försöker byta state till ${data.state}`
+      `${socket.name} försöker byta state till ${data.state}`
     );
     io.in(data.room).emit("recieve_state", data.state);
   });
