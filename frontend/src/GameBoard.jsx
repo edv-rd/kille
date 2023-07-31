@@ -1,12 +1,32 @@
 import socket from "./utils/socket";
 import { useState, useEffect } from "react";
+import styled from "styled-components";
+
+const StyledWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const StyledCard = styled.div`
+  border: 3px solid black;
+  border-radius: 5px;
+  padding: 10px;
+  width: 100px;
+  height: 150px;
+  overflow: clip;
+  word-wrap: break-word;
+`;
+
+const StyledCardText = styled.h1``;
 
 const GameBoard = ({ card }) => {
   return (
-    <>
-      <h1>Gameboard</h1>
-      <h2>kort: {card}</h2>
-    </>
+    <StyledWrapper>
+      <StyledCard>
+        <StyledCardText>{card}</StyledCardText>
+      </StyledCard>
+    </StyledWrapper>
   );
 };
 
