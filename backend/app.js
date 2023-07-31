@@ -96,21 +96,35 @@ io.on("connection", (socket) => {
   console.log(`någon connectade: ${socket.id}`);
   io.to(socket.id).emit("server_id", socket.id);
 
-  socket.on("join_room", (data) => {
+  socket.on("join_room", async (data) => {
     socket.join(data.room);
     const timestamp = new Date();
     console.log(`${socket.id} joinade ${data.room}`);
-    
+
     const playerCount = io.sockets.adapter.rooms.get(data.room).size;
+
+    const playerNames = [];
+    
+    const sockets = await io.in(data.room).fetchSockets();
+
+    for (const socket of sockets) {
+      playerNames.push(socket.name);
+    }
+
+    console.log(playerNames);
+
     io.in(data.room).emit("update_playercount", playerCount);
+    io.in(data.room).emit("update_playernames", playerNames);
     io.in(data.room).emit(
       "recieve_message",
       `[${timestamp.getHours()}:${timestamp.getMinutes()}]: ${
         socket.name
       } joinade ${data.room}`
-      );
-      io.to(socket.id).emit("recieve_room", data.room);
+    );
+    io.to(socket.id).emit("recieve_room", data.room);
   });
+
+  socket.on("join_game", (data, room) => {});
 
   socket.on("send_message", (data) => {
     const timestamp = new Date();

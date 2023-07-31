@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import socket from "./utils/socket.js";
 import GameBoard from "./GameBoard.jsx";
+import NameList from "./components/NameList.jsx";
 import styled from "styled-components";
 
 const StyledWrapper = styled.div`
@@ -25,6 +26,7 @@ const Game = ({ room, name }) => {
   const [chatMessages, setChatMessages] = useState([]);
   const [playerCount, setPlayerCount] = useState(0);
   const [gameState, setGameState] = useState("lobby");
+  const [playerNames, setPlayerNames] = useState([]);
 
   const sendChatMessage = () => {
     socket.emit("send_message", { message: chatMessage, room, name });
@@ -51,6 +53,10 @@ const Game = ({ room, name }) => {
     socket.on("update_playercount", (playerCount) => {
       setPlayerCount(playerCount);
     });
+
+    socket.on("update_playernames", (playerNames) => {
+      setPlayerNames(playerNames);
+    });
   }, [socket]);
 
   return (
@@ -60,6 +66,8 @@ const Game = ({ room, name }) => {
         {name} spelar i game {room}({gameState}) med {playerCount} spelare just
         nu
       </p>
+      <NameList names={playerNames} />
+
       <StyledContainer>
         {gameState == "game" ? (
           <GameBoard />
