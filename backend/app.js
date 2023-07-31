@@ -113,8 +113,7 @@ io.on("connection", (socket) => {
 
     console.log(playerNames);
 
-    io.in(data.room).emit("update_playercount", playerCount);
-    io.in(data.room).emit("update_playernames", playerNames);
+    io.in(data.room).emit("update_players", playerCount, playerNames);
     io.in(data.room).emit(
       "recieve_message",
       `[${timestamp.getHours()}:${timestamp.getMinutes()}]: ${

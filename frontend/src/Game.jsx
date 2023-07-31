@@ -50,11 +50,8 @@ const Game = ({ room, name }) => {
       setGameState(state);
     });
 
-    socket.on("update_playercount", (playerCount) => {
+    socket.on("update_players", (playerCount, playerNames) => {
       setPlayerCount(playerCount);
-    });
-
-    socket.on("update_playernames", (playerNames) => {
       setPlayerNames(playerNames);
     });
   }, [socket]);
