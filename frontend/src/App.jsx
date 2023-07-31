@@ -22,8 +22,10 @@ const App = () => {
   const [typedRoomNumber, setTypedRoomNumber] = useState("1");
 
   const handleJoin = () => {
+    {
+      typedRoomNumber ? setRoomNumber(typedRoomNumber) : setRoomNumber("1");
+    }
     socket.emit("change_name", { name: typedUserName });
-    socket.emit("join_room", { room: typedRoomNumber });
   };
 
   useEffect(() => {

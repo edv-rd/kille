@@ -23,6 +23,7 @@ const StyledChatContainer = styled(StyledContainer)`
 const Game = ({ room, name }) => {
   const [chatMessage, setChatMessage] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
+  const [playerCount, setPlayerCount] = useState(0);
   const [gameState, setGameState] = useState("lobby");
 
   const sendChatMessage = () => {
@@ -31,8 +32,12 @@ const Game = ({ room, name }) => {
   };
 
   const startGame = () => {
-    socket.emit("change_state", { state: "game", room, name });
+    socket.emit("start_game", { room, name });
   };
+
+  useEffect(() => {
+    socket.emit("join_room", { room });
+  }, []);
 
   useEffect(() => {
     socket.on("recieve_message", (message) => {
@@ -42,14 +47,19 @@ const Game = ({ room, name }) => {
     socket.on("recieve_state", (state) => {
       setGameState(state);
     });
+
+    socket.on("update_playercount", (playerCount) => {
+      setPlayerCount(playerCount);
+    });
   }, [socket]);
 
   return (
     <StyledWrapper>
       <h1>kille online!</h1>
-      <h2>
-        {name} spelar i game {room}({gameState})
-      </h2>
+      <p>
+        {name} spelar i game {room}({gameState}) med {playerCount} spelare just
+        nu
+      </p>
       <StyledContainer>
         {gameState == "game" ? (
           <GameBoard />
