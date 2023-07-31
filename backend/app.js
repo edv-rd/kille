@@ -114,6 +114,7 @@ io.on("connection", (socket) => {
     console.log(playerNames);
 
     io.in(data.room).emit("update_players", playerCount, playerNames);
+
     io.in(data.room).emit(
       "recieve_message",
       `[${timestamp.getHours()}:${timestamp.getMinutes()}]: ${
@@ -143,7 +144,7 @@ io.on("connection", (socket) => {
     io.to(socket.id).emit("recieve_name", data.name);
   });
 
-  socket.on("start_game", (data) => {
+  socket.on("start_game", async (data) => {
     const timestamp = new Date();
 
     console.log(`${socket.id} försöker starta spelet`);
@@ -157,7 +158,9 @@ io.on("connection", (socket) => {
 
     const gameDeck = new Deck();
 
-    io.sockets.adapter.rooms.get(data.room).forEach((player) => {
+    const players = await io.sockets.adapter.rooms.get(data.room);
+
+    players.forEach((player) => {
       const card = gameDeck.deal();
       io.to(player).emit("recieve_card", card);
 

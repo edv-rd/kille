@@ -27,6 +27,7 @@ const Game = ({ room, name }) => {
   const [playerCount, setPlayerCount] = useState(0);
   const [gameState, setGameState] = useState("lobby");
   const [playerNames, setPlayerNames] = useState([]);
+  const [card, setCard] = useState();
 
   const sendChatMessage = () => {
     socket.emit("send_message", { message: chatMessage, room, name });
@@ -54,6 +55,10 @@ const Game = ({ room, name }) => {
       setPlayerCount(playerCount);
       setPlayerNames(playerNames);
     });
+
+    socket.on("recieve_card", (card) => {
+      setCard(card);
+    });
   }, [socket]);
 
   return (
@@ -67,7 +72,7 @@ const Game = ({ room, name }) => {
 
       <StyledContainer>
         {gameState == "game" ? (
-          <GameBoard />
+          <GameBoard card={card} />
         ) : (
           <button onClick={startGame}>Start game</button>
         )}
