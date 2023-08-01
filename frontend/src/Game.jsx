@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import socket from "./utils/socket.js";
 import GameBoard from "./GameBoard.jsx";
 import NameList from "./components/NameList.jsx";
+import GameControls from "./components/GameControls.jsx";
 import styled from "styled-components";
 
 const StyledWrapper = styled.div`
@@ -27,7 +28,14 @@ const Game = ({ room, name }) => {
   const [playerCount, setPlayerCount] = useState(0);
   const [gameState, setGameState] = useState("lobby");
   const [playerNames, setPlayerNames] = useState([]);
+  const [yourTurn, setYourTurn] = useState(false);
   const [card, setCard] = useState();
+
+  const handleAction = (action) => {
+    console.log(action);
+    socket.emit("handle_action", { action });
+    setYourTurn(false);
+  };
 
   const sendChatMessage = () => {
     socket.emit("send_message", { message: chatMessage, room, name });
@@ -44,7 +52,7 @@ const Game = ({ room, name }) => {
 
   useEffect(() => {
     socket.on("recieve_message", (message) => {
-      setChatMessages((oldArray) => [...oldArray, message]);
+      setChatMessages((oldArray) => [message, ...oldArray]);
     });
 
     socket.on("recieve_state", (state) => {
@@ -59,6 +67,11 @@ const Game = ({ room, name }) => {
     socket.on("recieve_card", (card) => {
       setCard(card);
     });
+
+    socket.on("your_turn", () => {
+      console.log("Ditt drag!");
+      setYourTurn(true);
+    });
   }, [socket]);
 
   return (
@@ -72,7 +85,10 @@ const Game = ({ room, name }) => {
 
       <StyledContainer>
         {gameState == "game" ? (
-          <GameBoard card={card} />
+          <>
+            <GameBoard card={card} />
+            <GameControls yourTurn={yourTurn} handleAction={handleAction} />
+          </>
         ) : (
           <button onClick={startGame}>Start game</button>
         )}

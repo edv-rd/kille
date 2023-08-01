@@ -19,6 +19,10 @@ const io = new Server(server, {
   },
 });
 
+let turn = 0;
+let turnOrder = [];
+
+
 class Deck {
   constructor() {
     this.deck = [];
@@ -104,14 +108,12 @@ io.on("connection", (socket) => {
     const playerCount = io.sockets.adapter.rooms.get(data.room).size;
 
     const playerNames = [];
-    
+
     const sockets = await io.in(data.room).fetchSockets();
 
     for (const socket of sockets) {
       playerNames.push(socket.name);
     }
-
-    console.log(playerNames);
 
     io.in(data.room).emit("update_players", playerCount, playerNames);
 
@@ -125,6 +127,21 @@ io.on("connection", (socket) => {
   });
 
   socket.on("join_game", (data, room) => {});
+
+  socket.on("handle_action", (data) => {
+    console.log("handle_action", data);
+    switch (data.action) {
+      case "hold":
+        turn++;
+        io.to(turnOrder[turn]).emit("your_turn");
+        break;
+      case "change":
+        console.log("change card");
+        turn++;
+        io.to(turnOrder[turn]).emit("your_turn");
+        break;
+    }
+  });
 
   socket.on("send_message", (data) => {
     const timestamp = new Date();
@@ -160,6 +177,8 @@ io.on("connection", (socket) => {
 
     const players = await io.sockets.adapter.rooms.get(data.room);
 
+    turnOrder = Array.from(players);
+
     players.forEach((player) => {
       const card = gameDeck.deal();
       io.to(player).emit("recieve_card", card);
@@ -169,6 +188,20 @@ io.on("connection", (socket) => {
         `[${timestamp.getHours()}:${timestamp.getMinutes()}] ${player} får: ${card}`
       );
     });
+
+    const end_game = turn > turnOrder.length;
+
+    if (!end_game) {
+      io.to(turnOrder[turn]).emit("your_turn");
+      console.log(`det är ${turnOrder[turn]}s tur!`);
+    } else {
+      console.log("end_game");
+      io.in(data.room).emit(
+        "end_game",
+        `[${timestamp.getHours()}:${timestamp.getMinutes()}] spelet slut`
+        );
+        turn = 0;
+    }
   });
 });
 

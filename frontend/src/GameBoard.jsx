@@ -1,5 +1,3 @@
-import socket from "./utils/socket";
-import { useState, useEffect } from "react";
 import styled from "styled-components";
 
 const StyledWrapper = styled.div`
