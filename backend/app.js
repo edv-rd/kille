@@ -22,7 +22,6 @@ const io = new Server(server, {
 let turn = 0;
 let turnOrder = [];
 
-
 class Deck {
   constructor() {
     this.deck = [];
@@ -128,15 +127,52 @@ io.on("connection", (socket) => {
 
   socket.on("join_game", (data, room) => {});
 
-  socket.on("handle_action", (data) => {
-    console.log("handle_action", data);
+  socket.on("set_card", (data) => {
+    const timestamp = new Date();
+    console.log("set_card", data);
+    socket.card = data.card;
+
+    io.in(data.room).emit(
+      "recieve_message",
+      `[${timestamp.getHours()}:${timestamp.getMinutes()}]: ${
+        socket.name
+      } visar upp kortet ${data.card}`
+    );
+  });
+
+  socket.on("handle_action", async (data) => {
+    const timestamp = new Date();
     switch (data.action) {
       case "hold":
         turn++;
         io.to(turnOrder[turn]).emit("your_turn");
+        io.in(data.room).emit(
+          "recieve_message",
+          `[${timestamp.getHours()}:${timestamp.getMinutes()}] ${
+            socket.name
+          } knackar och håller`
+        );
         break;
       case "change":
-        console.log("change card");
+        const nextPlayer = await io.in(turnOrder[turn + 1]).fetchSockets();
+
+        if (!nextPlayer[0]) {
+          io.in(data.room).emit(
+            "recieve_message",
+            `[${timestamp.getHours()}:${timestamp.getMinutes()}] ${
+              socket.name
+            } går i lek`
+          );
+        } else {
+          io.in(data.room).emit(
+            "recieve_message",
+            `[${timestamp.getHours()}:${timestamp.getMinutes()}] ${
+              socket.name
+            } byter med ${nextPlayer[0].name}`
+          );
+          io.to(socket).emit("show_card");
+          io.to(nextPlayer[0]).emit("show_card");
+        }
         turn++;
         io.to(turnOrder[turn]).emit("your_turn");
         break;
@@ -195,12 +231,11 @@ io.on("connection", (socket) => {
       io.to(turnOrder[turn]).emit("your_turn");
       console.log(`det är ${turnOrder[turn]}s tur!`);
     } else {
-      console.log("end_game");
       io.in(data.room).emit(
         "end_game",
         `[${timestamp.getHours()}:${timestamp.getMinutes()}] spelet slut`
-        );
-        turn = 0;
+      );
+      turn = 0;
     }
   });
 });
