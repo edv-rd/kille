@@ -33,7 +33,6 @@ const Game = ({ room, name }) => {
 
   const handleAction = (action) => {
     socket.emit("handle_action", { action, room, card });
-    socket.emit("set_card", { card, name, room });
     setYourTurn(false);
   };
 
@@ -70,11 +69,6 @@ const Game = ({ room, name }) => {
 
     socket.on("your_turn", () => {
       setYourTurn(true);
-    });
-
-    socket.on("show_card", () => {
-      console.log("Show card!");
-      socket.emit("set_card", { card, name, room });
     });
   }, [socket]);
 
