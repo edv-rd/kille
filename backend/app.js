@@ -20,7 +20,6 @@ const io = new Server(server, {
 });
 
 let turn = 0;
-let turnOrder = [];
 
 class Deck {
   constructor() {
@@ -95,6 +94,8 @@ class Deck {
   }
 }
 
+const gameDeck = new Deck();
+
 io.on("connection", (socket) => {
   console.log(`någon connectade: ${socket.id}`);
   io.to(socket.id).emit("server_id", socket.id);
@@ -126,24 +127,25 @@ io.on("connection", (socket) => {
   });
 
   socket.on("handle_action", async (data) => {
+    const players = await io.in(data.room).fetchSockets();
+    let turnOrder = Array.from(players);
     const timestamp = new Date();
     switch (data.action) {
       case "hold":
-        turn++;
-        io.to(turnOrder[turn]).emit("your_turn");
         io.in(data.room).emit(
           "recieve_message",
           `[${timestamp.getHours()}:${timestamp.getMinutes()}] ${
             socket.name
           } knackar och håller`
         );
+        turn++;
+        io.to(turnOrder[turn].id).emit("your_turn");
         break;
       case "change":
         //const nextPlayer = await io.in(turnOrder[turn + 1]).fetchSockets();
         const nextPlayer = turnOrder[turn + 1];
-        
-        //console.log(turnOrder[turn + 1])
 
+        //console.log(turnOrder[turn + 1])
 
         if (!nextPlayer) {
           io.in(data.room).emit(
@@ -152,6 +154,10 @@ io.on("connection", (socket) => {
               socket.name
             } går i lek`
           );
+          const new_card = gameDeck.deal();
+          console.log(new_card);
+          socket.card = new_card;
+          io.to(socket.id).emit("recieve_card", new_card);
           break;
         } else {
           io.in(data.room).emit(
@@ -170,7 +176,6 @@ io.on("connection", (socket) => {
           io.to(nextPlayer.id).emit("your_turn");
           break;
         }
-
     }
   });
 
@@ -204,12 +209,13 @@ io.on("connection", (socket) => {
     );
     io.in(data.room).emit("recieve_state", "game");
 
-    const gameDeck = new Deck();
+    gameDeck.reset();
+    gameDeck.shuffle();
 
-   // const players = await io.sockets.adapter.rooms.get(data.room);
+    // const players = await io.sockets.adapter.rooms.get(data.room);
     const players = await io.in(data.room).fetchSockets();
 
-    turnOrder = Array.from(players);
+    let turnOrder = Array.from(players);
 
     players.forEach((player) => {
       const card = gameDeck.deal();
@@ -218,17 +224,18 @@ io.on("connection", (socket) => {
 
       io.in(data.room).emit(
         "recieve_message",
-        `[${timestamp.getHours()}:${timestamp.getMinutes()}] ${player.name} får: ${player.card}`
+        `[${timestamp.getHours()}:${timestamp.getMinutes()}] ${
+          player.name
+        } får: ${player.card}`
       );
     });
 
-    const end_game = turn > turnOrder.length;
+    let turn = 0;
 
+    io.to(turnOrder[turn].id).emit("your_turn");
+    console.log(`det är ${turnOrder[turn].name}s tur!`);
 
-    if (!end_game) {
-      io.to(turnOrder[turn].id).emit("your_turn");
-      console.log(`det är ${turnOrder[turn].name}s tur!`);
-    } else {
+    if (turn > turnOrder.length) {
       io.in(data.room).emit(
         "end_game",
         `[${timestamp.getHours()}:${timestamp.getMinutes()}] spelet slut`

@@ -68,6 +68,7 @@ const Game = ({ room, name }) => {
     });
 
     socket.on("your_turn", () => {
+      console.log("My turn!");
       setYourTurn(true);
     });
   }, [socket]);
