@@ -31,48 +31,68 @@ class Deck {
   reset() {
     this.deck = [];
     const cards = [
-      "harlekin",
-      "harlekin",
-      "kuku",
-      "kuku",
-      "husar",
-      "husar",
-      "husu",
-      "husu",
-      "kavall",
-      "kavall",
-      "vardshus",
-      "vardshus",
-      "12",
-      "12",
-      "11",
-      "11",
-      "10",
-      "10",
-      "9",
-      "9",
-      "8",
-      "8",
-      "7",
-      "7",
-      "6",
-      "6",
-      "5",
-      "5",
-      "4",
-      "4",
-      "3",
-      "3",
-      "2",
-      "2",
-      "1",
-      "1",
-      "krans",
-      "krans",
-      "blompotta",
-      "blompotta",
-      "blaren",
-      "blaren",
+      { name: "harlekin", value: 21 },
+      { name: "harlekin", value: 21 },
+
+      { name: "kuku", value: 20 },
+      { name: "kuku", value: 20 },
+
+      { name: "husar", value: 19 },
+      { name: "husar", value: 19 },
+
+      { name: "husu", value: 18 },
+      { name: "husu", value: 18 },
+
+      { name: "kavall", value: 17 },
+      { name: "kavall", value: 17 },
+
+      { name: "vardshus", value: 16 },
+      { name: "vardshus", value: 16 },
+
+      { name: "12", value: 15 },
+      { name: "12", value: 15 },
+
+      { name: "11", value: 14 },
+      { name: "11", value: 14 },
+
+      { name: "10", value: 13 },
+      { name: "10", value: 13 },
+
+      { name: "9", value: 12 },
+      { name: "9", value: 12 },
+
+      { name: "8", value: 11 },
+      { name: "8", value: 11 },
+
+      { name: "7", value: 10 },
+      { name: "7", value: 10 },
+
+      { name: "6", value: 9 },
+      { name: "6", value: 9 },
+
+      { name: "5", value: 8 },
+      { name: "5", value: 8 },
+
+      { name: "4", value: 7 },
+      { name: "4", value: 7 },
+
+      { name: "3", value: 6 },
+      { name: "3", value: 6 },
+
+      { name: "2", value: 5 },
+      { name: "2", value: 5 },
+
+      { name: "1", value: 4 },
+      { name: "1", value: 4 },
+
+      { name: "krans", value: 3 },
+      { name: "krans", value: 3 },
+
+      { name: "blompottan", value: 2 },
+      { name: "blompottan", value: 2 },
+
+      { name: "blaren", value: 1 },
+      { name: "blaren", value: 1 },
     ];
     cards.forEach((card) => {
       this.deck.push(card);
@@ -139,7 +159,17 @@ io.on("connection", (socket) => {
           } knackar och håller`
         );
         turn++;
+        if (turn > turnOrder.length) {
+          io.in(data.room).emit(
+            "end_game",
+            `[${timestamp.getHours()}:${timestamp.getMinutes()}] spelet slut`
+          );
+          console.log(`spelet e slut!`);
+          break;
+        }
         io.to(turnOrder[turn].id).emit("your_turn");
+        console.log(`det är ${turnOrder[turn].name}s tur!`);
+
         break;
       case "change":
         //const nextPlayer = await io.in(turnOrder[turn + 1]).fetchSockets();
@@ -172,8 +202,18 @@ io.on("connection", (socket) => {
 
           nextPlayer.card = temp_card;
           io.to(nextPlayer.id).emit("recieve_card", nextPlayer.card);
+
+          if (turn > turnOrder.length) {
+            io.in(data.room).emit(
+              "end_game",
+              `[${timestamp.getHours()}:${timestamp.getMinutes()}] spelet slut`
+            );
+            console.log(`spelet e slut!`);
+            break;
+          }
           turn++;
           io.to(nextPlayer.id).emit("your_turn");
+          console.log(`det är ${nextPlayer.name}s tur!`);
           break;
         }
     }
@@ -221,12 +261,13 @@ io.on("connection", (socket) => {
       const card = gameDeck.deal();
       io.to(player.id).emit("recieve_card", card);
       player.card = card;
+      console.log(`${player.name} har fått ${player.card.name}`);
 
       io.in(data.room).emit(
         "recieve_message",
         `[${timestamp.getHours()}:${timestamp.getMinutes()}] ${
           player.name
-        } får: ${player.card}`
+        } får: ${player.card.name}`
       );
     });
 
@@ -234,14 +275,6 @@ io.on("connection", (socket) => {
 
     io.to(turnOrder[turn].id).emit("your_turn");
     console.log(`det är ${turnOrder[turn].name}s tur!`);
-
-    if (turn > turnOrder.length) {
-      io.in(data.room).emit(
-        "end_game",
-        `[${timestamp.getHours()}:${timestamp.getMinutes()}] spelet slut`
-      );
-      turn = 0;
-    }
   });
 });
 

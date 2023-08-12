@@ -22,7 +22,7 @@ const GameBoard = ({ card }) => {
   return (
     <StyledWrapper>
       <StyledCard>
-        <StyledCardText>{card}</StyledCardText>
+        <StyledCardText>{card.name}</StyledCardText>
       </StyledCard>
     </StyledWrapper>
   );

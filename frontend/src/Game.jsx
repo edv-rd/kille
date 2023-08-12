@@ -64,6 +64,8 @@ const Game = ({ room, name }) => {
     });
 
     socket.on("recieve_card", (card) => {
+      console.log(card);
+
       setCard(card);
     });
 
@@ -85,7 +87,7 @@ const Game = ({ room, name }) => {
       <StyledContainer>
         {gameState == "game" ? (
           <>
-            <GameBoard card={card} />
+            {card && <GameBoard card={card} />}
             <GameControls yourTurn={yourTurn} handleAction={handleAction} />
           </>
         ) : (
