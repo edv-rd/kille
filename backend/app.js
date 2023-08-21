@@ -21,6 +21,13 @@ const io = new Server(server, {
 
 let turn = 0;
 
+const leadingZero = (num) => `0${num}`.slice(-2);
+
+const formatTime = (date) =>
+  [date.getHours(), date.getMinutes(), date.getSeconds()]
+  .map(leadingZero)
+  .join(':');
+
 class Deck {
   constructor() {
     this.deck = [];
@@ -139,7 +146,7 @@ io.on("connection", (socket) => {
 
     io.in(data.room).emit(
       "recieve_message",
-      `[${timestamp.getHours()}:${timestamp.getMinutes()}]: ${
+      `[${formatTime(timestamp)}]: ${
         socket.name
       } joinade ${data.room}`
     );
@@ -154,7 +161,7 @@ io.on("connection", (socket) => {
       case "hold":
         io.in(data.room).emit(
           "recieve_message",
-          `[${timestamp.getHours()}:${timestamp.getMinutes()}] ${
+          `[${formatTime(timestamp)}]: ${
             socket.name
           } knackar och håller`
         );
@@ -162,7 +169,7 @@ io.on("connection", (socket) => {
         if (turn > turnOrder.length) {
           io.in(data.room).emit(
             "end_game",
-            `[${timestamp.getHours()}:${timestamp.getMinutes()}] spelet slut`
+            `[${formatTime(timestamp)}]: spelet slut`
           );
           console.log(`spelet e slut!`);
           break;
@@ -180,7 +187,7 @@ io.on("connection", (socket) => {
         if (!nextPlayer) {
           io.in(data.room).emit(
             "recieve_message",
-            `[${timestamp.getHours()}:${timestamp.getMinutes()}] ${
+            `[${formatTime(timestamp)}]: ${
               socket.name
             } går i lek`
           );
@@ -192,7 +199,7 @@ io.on("connection", (socket) => {
         } else {
           io.in(data.room).emit(
             "recieve_message",
-            `[${timestamp.getHours()}:${timestamp.getMinutes()}] ${
+            `[${formatTime(timestamp)}]: ${
               socket.name
             } byter med ${nextPlayer.name}`
           );
@@ -206,7 +213,7 @@ io.on("connection", (socket) => {
           if (turn > turnOrder.length) {
             io.in(data.room).emit(
               "end_game",
-              `[${timestamp.getHours()}:${timestamp.getMinutes()}] spelet slut`
+              `[${formatTime(timestamp)}]: spelet slut`
             );
             console.log(`spelet e slut!`);
             break;
@@ -225,7 +232,7 @@ io.on("connection", (socket) => {
     console.log(`${socket.name} säger: ${data.message}`);
     io.in(data.room).emit(
       "recieve_message",
-      `[${timestamp.getHours()}:${timestamp.getMinutes()}] ${
+      `[${formatTime(timestamp)}]: ${
         socket.name
       } säger: ${data.message}`
     );
@@ -243,7 +250,7 @@ io.on("connection", (socket) => {
     console.log(`${socket.id} försöker starta spelet`);
     io.in(data.room).emit(
       "recieve_message",
-      `[${timestamp.getHours()}:${timestamp.getMinutes()}] ${
+      `[${formatTime(timestamp)}]: ${
         socket.name
       } försöker starta spelet`
     );
@@ -265,7 +272,7 @@ io.on("connection", (socket) => {
 
       io.in(data.room).emit(
         "recieve_message",
-        `[${timestamp.getHours()}:${timestamp.getMinutes()}] ${
+        `[${formatTime(timestamp)}]: ${
           player.name
         } får: ${player.card.name}`
       );
