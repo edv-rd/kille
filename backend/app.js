@@ -3,7 +3,7 @@ const dealer = require("./dealer");
 const express = require("express");
 const app = express();
 const port = 3000;
-const socketPort = 3001;
+const socketPort = 443;
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
@@ -14,7 +14,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://127.0.0.1:5173",
+    origin: "https://kille-frontend.onrender.com/",
     methods: ["GET", "POST"],
   },
 });
