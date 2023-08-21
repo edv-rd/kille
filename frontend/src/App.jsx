@@ -1,7 +1,7 @@
 import Game from "./Game.jsx";
 import socket from "./utils/socket.js";
 import styled from "styled-components";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 const StyledWrapper = styled.div`
   display: flex;
