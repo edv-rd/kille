@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import socket from "./utils/socket.js";
 import GameBoard from "./GameBoard.jsx";
 import NameList from "./components/NameList.jsx";
