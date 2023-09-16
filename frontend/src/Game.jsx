@@ -89,6 +89,7 @@ const Game = ({ room, name }) => {
           </>
         ) : gameState == "end" ? (
           <>
+            {card && <GameBoard card={card} />}
             <h1>Game ended!</h1>
           </>
         ) : (

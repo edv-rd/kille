@@ -1,5 +1,3 @@
-const dealer = require("./dealer");
-
 const express = require("express");
 const app = express();
 const port = 3000;
@@ -7,6 +5,9 @@ const socketPort = 443;
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
+
+const handleAction = require("./game");
+const postChatMessage = require("./utils");
 
 app.use(cors());
 
@@ -21,12 +22,6 @@ const io = new Server(server, {
 
 let turn = 0;
 
-const leadingZero = (num) => `0${num}`.slice(-2);
-
-const formatTime = (date) =>
-  [date.getHours(), date.getMinutes(), date.getSeconds()]
-    .map(leadingZero)
-    .join(":");
 
 class Deck {
   constructor() {
@@ -129,8 +124,6 @@ io.on("connection", (socket) => {
 
   socket.on("join_room", async (data) => {
     socket.join(data.room);
-    const timestamp = new Date();
-    console.log(`${socket.id} joinade ${data.room}`);
 
     const playerCount = io.sockets.adapter.rooms.get(data.room).size;
 
@@ -144,75 +137,22 @@ io.on("connection", (socket) => {
 
     io.in(data.room).emit("update_players", playerCount, playerNames);
 
-    io.in(data.room).emit(
-      "recieve_message",
-      `[${formatTime(timestamp)}]: ${socket.name} joinade ${data.room}`
-    );
+    postChatMessage(io, data, `${socket.name} joinade ${data.room}`);
+   
     io.to(socket.id).emit("recieve_room", data.room);
   });
 
   socket.on("handle_action", async (data) => {
-    const players = await io.in(data.room).fetchSockets();
-    let turnOrder = Array.from(players);
-    const timestamp = new Date();
-    let nextPlayer = turnOrder[turn + 1];
-
-    switch (data.action) {
-      case "hold":
-        io.in(data.room).emit(
-          "recieve_message",
-          `[${formatTime(timestamp)}]: ${socket.name} knackar och håller`
-        );
-        break;
-
-      case "change":
-        if (!nextPlayer) {
-          io.in(data.room).emit(
-            "recieve_message",
-            `[${formatTime(timestamp)}]: ${socket.name} går i lek`
-          );
-          const new_card = gameDeck.deal();
-          console.log(new_card);
-          socket.card = new_card;
-          io.to(socket.id).emit("recieve_card", new_card);
-        } else {
-          io.in(data.room).emit(
-            "recieve_message",
-            `[${formatTime(timestamp)}]: ${socket.name} byter med ${
-              nextPlayer.name
-            }`
-          );
-          let temp_card = socket.card;
-          socket.card = nextPlayer.card;
-          io.to(socket.id).emit("recieve_card", socket.card);
-          nextPlayer.card = temp_card;
-          io.to(nextPlayer.id).emit("recieve_card", nextPlayer.card);
-        }
-        break;
-    }
-
-    if (!nextPlayer) {
-      io.in(data.room).emit(
-        "recieve_state",
-        "end"
-      );
-      console.log(`spelet e slut!`);
-    } else {
-      io.to(nextPlayer.id).emit("your_turn");
-      console.log(`det är ${nextPlayer.name}s tur!`);
-
-      turn++;
-    }
+    await handleAction(io, socket, data, gameDeck, turn);
+    turn++;
   });
 
   socket.on("send_message", (data) => {
-    const timestamp = new Date();
 
     console.log(`${socket.name} säger: ${data.message}`);
-    io.in(data.room).emit(
-      "recieve_message",
-      `[${formatTime(timestamp)}]: ${socket.name} säger: ${data.message}`
-    );
+
+    postChatMessage(io, data, `${socket.name} säger: ${data.message}`);
+
   });
 
   socket.on("change_name", (data) => {
@@ -225,10 +165,9 @@ io.on("connection", (socket) => {
     const timestamp = new Date();
 
     console.log(`${socket.id} försöker starta spelet`);
-    io.in(data.room).emit(
-      "recieve_message",
-      `[${formatTime(timestamp)}]: ${socket.name} försöker starta spelet`
-    );
+
+    postChatMessage(io, data, `${socket.name} försöker starta spelet`);
+
     io.in(data.room).emit("recieve_state", "game");
 
     gameDeck.reset();
@@ -245,10 +184,6 @@ io.on("connection", (socket) => {
       player.card = card;
       console.log(`${player.name} har fått ${player.card.name}`);
 
-      io.in(data.room).emit(
-        "recieve_message",
-        `[${formatTime(timestamp)}]: ${player.name} får: ${player.card.name}`
-      );
     });
 
     let turn = 0;
