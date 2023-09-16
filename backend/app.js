@@ -162,7 +162,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("start_game", async (data) => {
-    const timestamp = new Date();
 
     console.log(`${socket.id} försöker starta spelet`);
 
@@ -186,10 +185,11 @@ io.on("connection", (socket) => {
 
     });
 
-    let turn = 0;
+    turn = 0;
 
     io.to(turnOrder[turn].id).emit("your_turn");
-    console.log(`det är ${turnOrder[turn].name}s tur!`);
+    console.log(`${turnOrder[turn].name} börjar!`);
+    postChatMessage(io, data, `${turnOrder[turn].name} börjar!`);
   });
 });
 

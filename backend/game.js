@@ -2,6 +2,7 @@ const postChatMessage = require("./utils");
 
 const handleAction = async (io, socket, data, gameDeck, turn) => {
   const players = await io.in(data.room).fetchSockets();
+  console.log(turn)
   let turnOrder = Array.from(players);
   let nextPlayer = turnOrder[turn + 1];
 
@@ -36,6 +37,7 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
 
   if (!nextPlayer) {
     io.in(data.room).emit("recieve_state", "end");
+    turn = 0;
     postChatMessage(io, data, `spelet är slut!`);
     console.log(`spelet e slut!`);
   } else {

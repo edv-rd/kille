@@ -28,6 +28,25 @@ const App = () => {
     socket.emit("change_name", { name: typedUserName });
   };
 
+  const handleQuickEnter = () => {
+    const stringArray = ["Ed", "Cliff", "Elvis", "Ålmannen"];
+    const stringArrayTwo = ["Blomkvist", "Cool", "Knase", "Buffel"];
+
+    const randomArray = Math.floor(Math.random() * stringArray.length);
+    console.log(randomArray);
+    console.log(stringArray[randomArray]);
+    const randomArrayTwo = Math.floor(Math.random() * stringArrayTwo.length);
+
+    const random1 = stringArray[randomArray];
+    const random2 = stringArrayTwo[randomArrayTwo];
+
+    const randomUserName = `${random1} ${random2}`;
+
+    setTypedUserName(randomUserName);
+    socket.emit("change_name", { name: typedUserName });
+    setRoomNumber("1");
+  };
+
   useEffect(() => {
     socket.on("recieve_name", (userName) => {
       setUserName(userName);
@@ -64,6 +83,9 @@ const App = () => {
             disabled={!typedUserName && !typedRoomNumber}
           >
             enter
+          </button>
+          <button type="button" onClick={handleQuickEnter}>
+            quick enter
           </button>
         </StyledContainer>
       )}
