@@ -25,8 +25,8 @@ const leadingZero = (num) => `0${num}`.slice(-2);
 
 const formatTime = (date) =>
   [date.getHours(), date.getMinutes(), date.getSeconds()]
-  .map(leadingZero)
-  .join(':');
+    .map(leadingZero)
+    .join(":");
 
 class Deck {
   constructor() {
@@ -146,9 +146,7 @@ io.on("connection", (socket) => {
 
     io.in(data.room).emit(
       "recieve_message",
-      `[${formatTime(timestamp)}]: ${
-        socket.name
-      } joinade ${data.room}`
+      `[${formatTime(timestamp)}]: ${socket.name} joinade ${data.room}`
     );
     io.to(socket.id).emit("recieve_room", data.room);
   });
@@ -157,72 +155,53 @@ io.on("connection", (socket) => {
     const players = await io.in(data.room).fetchSockets();
     let turnOrder = Array.from(players);
     const timestamp = new Date();
+    let nextPlayer = turnOrder[turn + 1];
+
     switch (data.action) {
       case "hold":
         io.in(data.room).emit(
           "recieve_message",
-          `[${formatTime(timestamp)}]: ${
-            socket.name
-          } knackar och håller`
+          `[${formatTime(timestamp)}]: ${socket.name} knackar och håller`
         );
-        turn++;
-        if (turn > turnOrder.length) {
-          io.in(data.room).emit(
-            "end_game",
-            `[${formatTime(timestamp)}]: spelet slut`
-          );
-          console.log(`spelet e slut!`);
-          break;
-        }
-        io.to(turnOrder[turn].id).emit("your_turn");
-        console.log(`det är ${turnOrder[turn].name}s tur!`);
-
         break;
+
       case "change":
-        //const nextPlayer = await io.in(turnOrder[turn + 1]).fetchSockets();
-        const nextPlayer = turnOrder[turn + 1];
-
-        //console.log(turnOrder[turn + 1])
-
         if (!nextPlayer) {
           io.in(data.room).emit(
             "recieve_message",
-            `[${formatTime(timestamp)}]: ${
-              socket.name
-            } går i lek`
+            `[${formatTime(timestamp)}]: ${socket.name} går i lek`
           );
           const new_card = gameDeck.deal();
           console.log(new_card);
           socket.card = new_card;
           io.to(socket.id).emit("recieve_card", new_card);
-          break;
         } else {
           io.in(data.room).emit(
             "recieve_message",
-            `[${formatTime(timestamp)}]: ${
-              socket.name
-            } byter med ${nextPlayer.name}`
+            `[${formatTime(timestamp)}]: ${socket.name} byter med ${
+              nextPlayer.name
+            }`
           );
           let temp_card = socket.card;
           socket.card = nextPlayer.card;
           io.to(socket.id).emit("recieve_card", socket.card);
-
           nextPlayer.card = temp_card;
           io.to(nextPlayer.id).emit("recieve_card", nextPlayer.card);
-
-          if (turn > turnOrder.length) {
-            io.in(data.room).emit(
-              "end_game",
-              `[${formatTime(timestamp)}]: spelet slut`
-            );
-            console.log(`spelet e slut!`);
-            break;
-          }
-          turn++;
-          io.to(nextPlayer.id).emit("your_turn");
-          console.log(`det är ${nextPlayer.name}s tur!`);
-          break;
         }
+        break;
+    }
+
+    if (!nextPlayer) {
+      io.in(data.room).emit(
+        "recieve_state",
+        "end"
+      );
+      console.log(`spelet e slut!`);
+    } else {
+      io.to(nextPlayer.id).emit("your_turn");
+      console.log(`det är ${nextPlayer.name}s tur!`);
+
+      turn++;
     }
   });
 
@@ -232,9 +211,7 @@ io.on("connection", (socket) => {
     console.log(`${socket.name} säger: ${data.message}`);
     io.in(data.room).emit(
       "recieve_message",
-      `[${formatTime(timestamp)}]: ${
-        socket.name
-      } säger: ${data.message}`
+      `[${formatTime(timestamp)}]: ${socket.name} säger: ${data.message}`
     );
   });
 
@@ -250,9 +227,7 @@ io.on("connection", (socket) => {
     console.log(`${socket.id} försöker starta spelet`);
     io.in(data.room).emit(
       "recieve_message",
-      `[${formatTime(timestamp)}]: ${
-        socket.name
-      } försöker starta spelet`
+      `[${formatTime(timestamp)}]: ${socket.name} försöker starta spelet`
     );
     io.in(data.room).emit("recieve_state", "game");
 
@@ -272,9 +247,7 @@ io.on("connection", (socket) => {
 
       io.in(data.room).emit(
         "recieve_message",
-        `[${formatTime(timestamp)}]: ${
-          player.name
-        } får: ${player.card.name}`
+        `[${formatTime(timestamp)}]: ${player.name} får: ${player.card.name}`
       );
     });
 

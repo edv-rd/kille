@@ -64,13 +64,10 @@ const Game = ({ room, name }) => {
     });
 
     socket.on("recieve_card", (card) => {
-      console.log(card);
-
       setCard(card);
     });
 
     socket.on("your_turn", () => {
-      console.log("My turn!");
       setYourTurn(true);
     });
   }, [socket]);
@@ -79,7 +76,7 @@ const Game = ({ room, name }) => {
     <StyledWrapper>
       <h1>kille online!</h1>
       <p>
-        {name} spelar i game {room}({gameState}) med {playerCount} spelare just
+        {name} spelar i game {room} ({gameState}) med {playerCount} spelare just
         nu
       </p>
       <NameList names={playerNames} />
@@ -89,6 +86,10 @@ const Game = ({ room, name }) => {
           <>
             {card && <GameBoard card={card} />}
             <GameControls yourTurn={yourTurn} handleAction={handleAction} />
+          </>
+        ) : gameState == "end" ? (
+          <>
+            <h1>Game ended!</h1>
           </>
         ) : (
           <button onClick={startGame}>Start game</button>
@@ -107,7 +108,7 @@ const Game = ({ room, name }) => {
         </button>
         <StyledChatContainer>
           {chatMessages.map((message) => {
-            return <p>{message}</p>;
+            return <p key>{message}</p>;
           })}
         </StyledChatContainer>
       </StyledContainer>
