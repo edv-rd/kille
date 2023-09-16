@@ -43,9 +43,10 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
   }
 
   if (!nextPlayer) {
+    const winner = await resolveGame(io, data);
     io.in(data.room).emit("recieve_state", "end");
     turn = 0;
-    postChatMessage(io, data, `spelet är slut!`);
+    postChatMessage(io, data, `spelet är slut. ${winner}!`);
     //console.log(`spelet e slut!`);
   } else {
     io.to(nextPlayer.id).emit("your_turn");
@@ -71,6 +72,14 @@ const resolveCard = (card, from_deck) => {
   }
 };
 
-const resolveGame = (players) => {};
+const resolveGame = async (io, data) => {
+  const players = await io.in(data.room).fetchSockets();
+    playersArray = Array.from(players);
+
+    playersArray.sort((a, b) => b.card.value - a.card.value);
+
+    return playersArray[0].name;
+    
+};
 
 module.exports = handleAction;
