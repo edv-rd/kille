@@ -119,7 +119,7 @@ class Deck {
 const gameDeck = new Deck();
 
 io.on("connection", (socket) => {
-  console.log(`någon connectade: ${socket.id}`);
+  // console.log(`någon connectade: ${socket.id}`);
   io.to(socket.id).emit("server_id", socket.id);
 
   socket.on("join_room", async (data) => {
@@ -149,21 +149,21 @@ io.on("connection", (socket) => {
 
   socket.on("send_message", (data) => {
 
-    console.log(`${socket.name} säger: ${data.message}`);
+    // console.log(`${socket.name} säger: ${data.message}`);
 
     postChatMessage(io, data, `${socket.name} säger: ${data.message}`);
 
   });
 
   socket.on("change_name", (data) => {
-    console.log(`${socket.id} vill byta namn till ${data.name}`);
+    // console.log(`${socket.id} vill byta namn till ${data.name}`);
     socket.name = data.name;
     io.to(socket.id).emit("recieve_name", data.name);
   });
 
   socket.on("start_game", async (data) => {
 
-    console.log(`${socket.id} försöker starta spelet`);
+    // console.log(`${socket.id} försöker starta spelet`);
 
     postChatMessage(io, data, `${socket.name} försöker starta spelet`);
 
@@ -181,14 +181,14 @@ io.on("connection", (socket) => {
       const card = gameDeck.deal();
       io.to(player.id).emit("recieve_card", card);
       player.card = card;
-      console.log(`${player.name} har fått ${player.card.name}`);
+      // console.log(`${player.name} har fått ${player.card.name}`);
 
     });
 
     turn = 0;
 
     io.to(turnOrder[turn].id).emit("your_turn");
-    console.log(`${turnOrder[turn].name} börjar!`);
+    // console.log(`${turnOrder[turn].name} börjar!`);
     postChatMessage(io, data, `${turnOrder[turn].name} börjar!`);
   });
 });

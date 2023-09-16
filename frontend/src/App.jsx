@@ -33,8 +33,6 @@ const App = () => {
     const stringArrayTwo = ["Blomkvist", "Cool", "Knase", "Buffel"];
 
     const randomArray = Math.floor(Math.random() * stringArray.length);
-    console.log(randomArray);
-    console.log(stringArray[randomArray]);
     const randomArrayTwo = Math.floor(Math.random() * stringArrayTwo.length);
 
     const random1 = stringArray[randomArray];

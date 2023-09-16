@@ -2,7 +2,6 @@ const postChatMessage = require("./utils");
 
 const handleAction = async (io, socket, data, gameDeck, turn) => {
   const players = await io.in(data.room).fetchSockets();
-  console.log(turn)
   let turnOrder = Array.from(players);
   let nextPlayer = turnOrder[turn + 1];
 
@@ -13,17 +12,25 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
 
     case "change":
       if (!nextPlayer) {
-        postChatMessage(io, data, `${socket.name} går i lek`);
-
         const new_card = gameDeck.deal();
-        console.log(new_card);
+        const resolve = resolveCard(new_card.name, true);
         socket.card = new_card;
-        io.to(socket.id).emit("recieve_card", new_card);
-      } else {
         postChatMessage(
           io,
           data,
-          `${socket.name} byter med ${nextPlayer.name}`
+          resolve
+            ? `${socket.name} går i lek. ${resolve}!`
+            : `${socket.name} går i lek!`
+        );
+        io.to(socket.id).emit("recieve_card", new_card);
+      } else {
+        const resolve = resolveCard(nextPlayer.card.name, false);
+        postChatMessage(
+          io,
+          data,
+          resolve
+            ? `${socket.name} byter med ${nextPlayer.name}. ${resolve}!`
+            : `${socket.name} byter med ${nextPlayer.name}`
         );
 
         let temp_card = socket.card;
@@ -39,12 +46,31 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
     io.in(data.room).emit("recieve_state", "end");
     turn = 0;
     postChatMessage(io, data, `spelet är slut!`);
-    console.log(`spelet e slut!`);
+    //console.log(`spelet e slut!`);
   } else {
     io.to(nextPlayer.id).emit("your_turn");
-    console.log(`det är ${nextPlayer.name}s tur!`);
+    //console.log(`det är ${nextPlayer.name}s tur!`);
     postChatMessage(io, data, `det är ${nextPlayer.name}s tur!`);
   }
 };
+
+const resolveCard = (card, from_deck) => {
+  switch (card) {
+    case "harlekin":
+      break;
+    case "kuku":
+      return "kuku står";
+    case "husar":
+      return "husar ger hugg";
+    case "husu":
+      return "svinhugg går igen";
+    case "kavall":
+      return "kavall förbi";
+    case "vardshus":
+      return "värdshus förbi";
+  }
+};
+
+const resolveGame = (players) => {};
 
 module.exports = handleAction;
