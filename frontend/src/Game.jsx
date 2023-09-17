@@ -84,8 +84,8 @@ const Game = ({ room, name }) => {
     <StyledWrapper>
       <h1>kille online!</h1>
       <p>
-        {name} spelar i game {room} ({gameState}) med {players.length + 1}{" "}
-        spelare just nu
+        {name} spelar i game {room} ({gameState}) med {players.length} spelare
+        just nu
       </p>
       {gameState == "lobby" && <NameList players={players} />}
 

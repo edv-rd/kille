@@ -40,17 +40,14 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
         let temp_card = socket.card;
         socket.card = nextPlayer.card;
         io.to(socket.id).emit("recieve_card", socket.card);
-        io.in(data.room).emit("show_card", {
-          card: socket.card,
-          id: socket.id,
-        });
+        io.to(socket.id).emit("show_card", { id: socket.id, card: socket.card })
+
 
         nextPlayer.card = temp_card;
         io.to(nextPlayer.id).emit("recieve_card", nextPlayer.card);
-        io.in(data.room).emit("show_card", {
-          card: nextPlayer.card,
-          id: nextPlayer.id,
-        });
+        io.to(nextPlayer.id).emit("show_card", { id: nextPlayer.id, card: nextPlayer.card })
+
+    
       }
       break;
   }
@@ -59,7 +56,7 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
     const winner = await resolveGame(io, data);
     io.in(data.room).emit("recieve_state", "end");
     turn = 0;
-    postChatMessage(io, data, `spelet är slut. ${winner}!`);
+    postChatMessage(io, data, `spelet är slut. ${winner} vinner!`);
     //console.log(`spelet e slut!`);
   } else {
     io.to(nextPlayer.id).emit("your_turn");
@@ -91,6 +88,7 @@ const resolveGame = async (io, data) => {
   playersArray = Array.from(players);
   playersArray.forEach((player) => {
     const { name, card, id } = player;
+
 
     io.in(data.room).emit("show_card", {
       name,
