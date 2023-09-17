@@ -26,7 +26,7 @@ const Game = ({ room, name }) => {
   const [chatMessage, setChatMessage] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
 
-  const [playerCards, setPlayerCards] = useState();
+  const [turnId, setTurnId] = useState();
 
   const [players, setPlayers] = useState([]);
 
@@ -78,6 +78,10 @@ const Game = ({ room, name }) => {
     socket.on("your_turn", () => {
       setYourTurn(true);
     });
+
+    socket.on("set_turn", (id) => {
+      setTurnId(id);
+    });
   }, [socket]);
 
   return (
@@ -92,7 +96,7 @@ const Game = ({ room, name }) => {
       <StyledContainer>
         {gameState == "game" ? (
           <>
-            {players && <GameBoard players={players} />}
+            {players && <GameBoard players={players} turnId={turnId} />}
             <GameControls yourTurn={yourTurn} handleAction={handleAction} />
           </>
         ) : gameState == "end" ? (

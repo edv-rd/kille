@@ -8,7 +8,7 @@ const StyledWrapper = styled.div`
 `;
 
 const StyledCard = styled.div`
-  border: 3px solid black;
+  border: ${(props) => (props.hasTurn ? "3px solid red" : "3px solid black")};
   border-radius: 5px;
   padding: 10px;
   width: 100px;
@@ -19,9 +19,10 @@ const StyledCard = styled.div`
 
 const StyledCardText = styled.h1``;
 
-const PlayerCard = ({ card }) => {
+const PlayerCard = ({ card, hasTurn }) => {
+  console.log(hasTurn);
   return (
-    <StyledCard>
+    <StyledCard hasTurn={hasTurn}>
       <StyledCardText>{card.name}</StyledCardText>
     </StyledCard>
   );

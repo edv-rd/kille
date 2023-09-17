@@ -15,7 +15,7 @@ const StyledNameCard = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 2px solid black;
+  border: ${(props) => (props.hasTurn ? "2px solid red" : "2px solid black")};
   padding: 5px;
 `;
 
@@ -25,14 +25,19 @@ const StyledContainer = styled.div`
   gap: 4px;
 `;
 
-const GameBoard = ({ players }) => {
+const GameBoard = ({ players, turnId }) => {
   return (
     <StyledWrapper>
       {players.map((player) => {
+        console.log(turnId);
+        console.log(player.id);
+
+        const hasTurn = player.id === turnId;
+        console.log(hasTurn);
         return (
           <StyledContainer>
-            <StyledNameCard>{player.name}</StyledNameCard>
-            <PlayerCard card={player.card} />
+            <StyledNameCard hasTurn={hasTurn}>{player.name}</StyledNameCard>
+            <PlayerCard card={player.card} hasTurn={hasTurn} />
           </StyledContainer>
         );
       })}

@@ -121,6 +121,8 @@ io.on("connection", (socket) => {
     turn = 0;
 
     io.to(turnOrder[turn].id).emit("your_turn");
+    io.in(data.room).emit("set_turn", turnOrder[turn].id);
+
     // console.log(`${turnOrder[turn].name} börjar!`);
     postChatMessage(io, data, `${turnOrder[turn].name} börjar!`);
   });

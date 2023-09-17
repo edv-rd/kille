@@ -62,6 +62,7 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
     io.to(nextPlayer.id).emit("your_turn");
     //console.log(`det är ${nextPlayer.name}s tur!`);
     postChatMessage(io, data, `det är ${nextPlayer.name}s tur!`);
+    io.in(data.room).emit("set_turn", nextPlayer.id);
   }
 };
 
