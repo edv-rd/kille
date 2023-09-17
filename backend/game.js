@@ -23,6 +23,10 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
             : `${socket.name} går i lek!`
         );
         io.to(socket.id).emit("recieve_card", new_card);
+        io.in(data.room).emit("show_card", {
+          card: socket.card,
+          id: socket.id,
+        });
       } else {
         const resolve = resolveCard(nextPlayer.card.name, false);
         postChatMessage(
@@ -36,8 +40,17 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
         let temp_card = socket.card;
         socket.card = nextPlayer.card;
         io.to(socket.id).emit("recieve_card", socket.card);
+        io.in(data.room).emit("show_card", {
+          card: socket.card,
+          id: socket.id,
+        });
+
         nextPlayer.card = temp_card;
         io.to(nextPlayer.id).emit("recieve_card", nextPlayer.card);
+        io.in(data.room).emit("show_card", {
+          card: nextPlayer.card,
+          id: nextPlayer.id,
+        });
       }
       break;
   }
@@ -74,12 +87,21 @@ const resolveCard = (card, from_deck) => {
 
 const resolveGame = async (io, data) => {
   const players = await io.in(data.room).fetchSockets();
-    playersArray = Array.from(players);
 
-    playersArray.sort((a, b) => b.card.value - a.card.value);
+  playersArray = Array.from(players);
+  playersArray.forEach((player) => {
+    const { name, card, id } = player;
 
-    return playersArray[0].name;
-    
+    io.in(data.room).emit("show_card", {
+      name,
+      card,
+      id,
+    });
+  });
+
+  playersArray.sort((a, b) => b.card.value - a.card.value);
+
+  return playersArray[0].name;
 };
 
 module.exports = handleAction;

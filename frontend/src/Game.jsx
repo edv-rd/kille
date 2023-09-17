@@ -34,7 +34,7 @@ const Game = ({ room, name }) => {
   const [yourTurn, setYourTurn] = useState(false);
 
   const handleAction = (action) => {
-    socket.emit("handle_action", { action, room, card });
+    socket.emit("handle_action", { action, room });
     setYourTurn(false);
   };
 
@@ -97,7 +97,8 @@ const Game = ({ room, name }) => {
           </>
         ) : gameState == "end" ? (
           <>
-            {card && <GameBoard card={card} />}
+            {players && <GameBoard players={players} />}
+
             <h1>Game ended!</h1>
           </>
         ) : (
