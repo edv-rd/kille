@@ -17,11 +17,11 @@ const StyledNameCard = styled.div`
   padding: 5px;
 `;
 
-const NameList = ({ names }) => {
+const NameList = ({ players }) => {
   return (
     <StyledWrapper>
-      {names.map((name) => {
-        return <StyledNameCard>{name}</StyledNameCard>;
+      {players.map((player) => {
+        return <StyledNameCard>{player.name}</StyledNameCard>;
       })}
     </StyledWrapper>
   );
