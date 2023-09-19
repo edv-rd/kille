@@ -8,7 +8,12 @@ const StyledWrapper = styled.div`
 `;
 
 const StyledCard = styled.div`
-  border: ${(props) => (props.hasTurn ? "3px solid red" : "3px solid black")};
+  border: ${(props) =>
+    props.hasTurn
+      ? "3px solid red"
+      : !props.alive
+      ? "3px solid grey"
+      : "3px solid black"};
   border-radius: 5px;
   padding: 10px;
   width: 100px;
@@ -17,13 +22,13 @@ const StyledCard = styled.div`
   word-wrap: break-word;
 `;
 
-const StyledCardText = styled.h1``;
-
-const PlayerCard = ({ card, hasTurn }) => {
-  console.log(hasTurn);
+const StyledCardText = styled.h1`
+  color: ${(props) => (props.alive ? "black" : "grey")};
+`;
+const PlayerCard = ({ card, hasTurn, alive }) => {
   return (
-    <StyledCard hasTurn={hasTurn}>
-      <StyledCardText>{card.name}</StyledCardText>
+    <StyledCard alive={alive} hasTurn={hasTurn}>
+      <StyledCardText alive={alive}>{card.name}</StyledCardText>
     </StyledCard>
   );
 };

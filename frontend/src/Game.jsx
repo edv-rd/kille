@@ -64,6 +64,17 @@ const Game = ({ room, name }) => {
       setPlayers(players);
     });
 
+    socket.on("set_unalive", (id) => {
+      setPlayers((prev) => {
+        return prev.map((player) => {
+          if (player.id === id) {
+            return { ...player, alive: false }; // Update the card value
+          }
+          return player; // Return the unchanged object for other players
+        });
+      });
+    });
+
     socket.on("show_card", ({ name, card, id }) => {
       setPlayers((prev) => {
         return prev.map((player) => {

@@ -58,6 +58,9 @@ io.on("connection", (socket) => {
   // console.log(`någon connectade: ${socket.id}`);
   io.to(socket.id).emit("server_id", socket.id);
 
+  let alive = true;
+  socket.alive = alive;
+
   socket.on("join_room", async (data) => {
     socket.join(data.room);
 
@@ -66,7 +69,7 @@ io.on("connection", (socket) => {
     playersArray = [];
 
     for (const player of players) {
-      playersArray.push({ name: player.name, card: "", id: player.id });
+      playersArray.push({ name: player.name, card: "", id: player.id, alive: true });
     }
 
     io.in(data.room).emit("update_players", playersArray);
@@ -105,6 +108,10 @@ io.on("connection", (socket) => {
 
     // const players = await io.sockets.adapter.rooms.get(data.room);
     const players = await io.in(data.room).fetchSockets();
+
+    players.forEach((player) => {
+      player.alive = true;
+    });
 
     let turnOrder = Array.from(players);
 
