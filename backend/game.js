@@ -1,24 +1,30 @@
 const postChatMessage = require("./utils");
+const { rooms } = require("./sharedState"); // Import the shared state
+
+
 
 const handleAction = async (io, socket, data, gameDeck, turn) => {
-  const players = await io.in(data.room).fetchSockets();
+  const players = rooms[data.room].players; 
   playersArray = Array.from(players);
 
   let turnOrder = Array.from(players);
   let nextPlayer = turnOrder[turn + 1];
+  // console.log(`turnorder name: ${turnOrder[turn].name}`)
+  // console.log(`turnorder +1 name: ${turnOrder[turn+1].name}`)
+  // console.log(`1 nästa spelare: ${nextPlayer.name}`)
 
   const resolveCard = async (card, from_deck) => {
     switch (card) {
       case "harlekin":
-        if (from_deck) {
+        if (!from_deck) {
           card.value = 0;
         }
         break;
       case "kuku":
-        const winner = await resolveGame(io, data);
+        const winners = await resolveGame(io, data);
         io.in(data.room).emit("recieve_state", "end");
         turn = 0;
-        postChatMessage(io, data, `kuku står! ${winner} vinner!`);
+        postChatMessage(io, data, `kuku står! ${winners[0].name} vinner!`);
         return false;
       case "husar":
         socket.alive = false;
@@ -27,8 +33,10 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
       case "husu":
         return "svinhugg går igen";
       case "kavall":
+        if (from_deck) return false;
         return "kavall förbi";
       case "vardshus":
+        if (from_deck) return false;
         return "värdshus förbi";
       default:
         return true;
@@ -36,9 +44,19 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
   };
 
   const resolveGame = async (io, data) => {
-    playersArray.forEach((player) => {
+    const players = rooms[data.room].players;
+
+    // Filter alive players
+    const alivePlayers = players.filter(player => player.alive);
+
+    // Sort players by card value in descending order
+    alivePlayers.sort((a, b) => b.card.value - a.card.value);
+
+    alivePlayers.forEach((player) => {
       const { name, card, id } = player;
 
+      // console.log(`forEach loop efter sortering: namn: ${name} kort: ${card.name} värt ${card.value} med id: ${id}`)
+ 
       io.in(data.room).emit("show_card", {
         name,
         card,
@@ -48,9 +66,21 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
 
 
 
-    playersArray.filter((player) => {player.alive == true;}).sort((a, b) => b.card.value - a.card.value);
+      
+    // playersArray.forEach((p) => {console.log(`namn: ${p.name} kort: ${p.card.name} värt ${p.card.value} med id: ${p.id}`)})
 
-    return playersArray[0].name;
+
+
+
+    rooms[data.room] = { players: alivePlayers };
+
+
+    // console.log(`${alivePlayers[0].name} vinner med ${alivePlayers[0].card.name} värt ${alivePlayers[0].card.value} och ${alivePlayers[0].isWinner ? "winner" : "false"}`)
+    // console.log(`${alivePlayers[1].name} förlorar med ${alivePlayers[0].card.name} värt ${alivePlayers[0].card.value}`)
+
+
+
+    return alivePlayers;
   };
 
   switch (data.action) {
@@ -80,6 +110,9 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
         });
       } else {
         const resolve = await resolveCard(nextPlayer.card.name, false);
+        if (!resolve) {
+          break;
+        }
         postChatMessage(
           io,
           data,
@@ -107,12 +140,16 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
   }
 
   if (!nextPlayer) {
-    const winner = await resolveGame(io, data);
+    const winners = await resolveGame(io, data);
+    io.in(data.room).emit("set_winner", winners[0].id);
     io.in(data.room).emit("recieve_state", "end");
     turn = 0;
-    postChatMessage(io, data, `spelet är slut. ${winner} vinner!`);
+    //io.in(data.room).emit("update_players", winners);
+
+    postChatMessage(io, data, `spelet är slut. ${winners[0].name} vinner!`);
     //console.log(`spelet e slut!`);
   } else {
+    console.log(`nästa spelare: ${nextPlayer.name}`)
     io.to(nextPlayer.id).emit("your_turn");
     //console.log(`det är ${nextPlayer.name}s tur!`);
     postChatMessage(io, data, `det är ${nextPlayer.name}s tur!`);

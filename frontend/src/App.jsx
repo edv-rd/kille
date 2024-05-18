@@ -29,8 +29,23 @@ const App = () => {
   };
 
   const handleQuickEnter = () => {
-    const stringArray = ["Ed", "Cliff", "Elvis", "Ålmannen"];
-    const stringArrayTwo = ["Blomkvist", "Cool", "Knase", "Buffel"];
+    const stringArray = [
+      "Ed",
+      "Cliff",
+      "Elvis",
+      "Ålmannen",
+      "Bosse",
+      "Random",
+      "Karta",
+    ];
+    const stringArrayTwo = [
+      "Blomkvist",
+      "Cool",
+      "Knase",
+      "Buffel",
+      "DaGangzta",
+      "Randomsson",
+    ];
 
     const randomArray = Math.floor(Math.random() * stringArray.length);
     const randomArrayTwo = Math.floor(Math.random() * stringArrayTwo.length);

@@ -45,6 +45,7 @@ const GameBoard = ({ players, turnId }) => {
               alive={player.alive}
               card={player.card}
               hasTurn={hasTurn}
+              isWinner={player.isWinner}
             />
           </StyledContainer>
         );

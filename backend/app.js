@@ -6,6 +6,9 @@ const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 
+const { rooms } = require("./sharedState"); // Import the shared state
+
+
 const handleAction = require("./game");
 const postChatMessage = require("./utils");
 const deckofcards = require("./cards");
@@ -59,7 +62,7 @@ io.on("connection", (socket) => {
   io.to(socket.id).emit("server_id", socket.id);
 
   let alive = true;
-  socket.alive = alive;
+  socket.alive = alive; // ?
 
   socket.on("join_room", async (data) => {
     socket.join(data.room);
@@ -69,10 +72,11 @@ io.on("connection", (socket) => {
     playersArray = [];
 
     for (const player of players) {
-      playersArray.push({ name: player.name, card: "", id: player.id, alive: true });
+      playersArray.push({ name: player.name, card: "", id: player.id, alive: true, winner: false });
     }
 
     io.in(data.room).emit("update_players", playersArray);
+    rooms[data.room] = { players: playersArray };
 
     postChatMessage(io, data, `${socket.name} joinade ${data.room}`);
 
@@ -109,11 +113,20 @@ io.on("connection", (socket) => {
     // const players = await io.sockets.adapter.rooms.get(data.room);
     const players = await io.in(data.room).fetchSockets();
 
+    const playerIndex = players.findIndex(player => player.id === socket.id);
+    if (playerIndex > -1) {
+        const [player] = players.splice(playerIndex, 1);
+        players.unshift(player);
+    }
+
     players.forEach((player) => {
       player.alive = true;
     });
 
     let turnOrder = Array.from(players);
+
+
+
 
     players.forEach((player) => {
       const card = gameDeck.deal();
@@ -125,7 +138,10 @@ io.on("connection", (socket) => {
       });
     });
 
+    rooms[data.room].players = players;
+
     turn = 0;
+
 
     io.to(turnOrder[turn].id).emit("your_turn");
     io.in(data.room).emit("set_turn", turnOrder[turn].id);

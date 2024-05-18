@@ -75,6 +75,17 @@ const Game = ({ room, name }) => {
       });
     });
 
+    socket.on("set_winner", (id) => {
+      setPlayers((prev) => {
+        return prev.map((player) => {
+          if (player.id === id) {
+            return { ...player, isWinner: true }; // Update the card value
+          }
+          return player; // Return the unchanged object for other players
+        });
+      });
+    });
+
     socket.on("show_card", ({ name, card, id }) => {
       setPlayers((prev) => {
         return prev.map((player) => {
