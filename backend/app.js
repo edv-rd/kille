@@ -59,8 +59,9 @@ const gameDeck = new Deck();
 
 io.on("connection", (socket) => {
   // console.log(`någon connectade: ${socket.id}`);
+  
   io.to(socket.id).emit("server_id", socket.id);
-
+  io.to(socket.id).emit("recieve_id", socket.id);
   let alive = true;
   socket.alive = alive; // ?
 
@@ -126,22 +127,27 @@ io.on("connection", (socket) => {
     let turnOrder = Array.from(players);
 
 
+    const cleanPlayersArray = turnOrder.map(player => ({
+      name: player.name,
+      id: player.id,
+      alive: player.alive,
+      winner: false,
+      card: gameDeck.deal()
+    }));
+  
+    cleanPlayersArray.forEach((player) => {
 
-
-    players.forEach((player) => {
-      const card = gameDeck.deal();
-      player.card = card;
       io.to(player.id).emit("show_card", {
         name: player.name,
         card: player.card,
         id: player.id,
       });
     });
-
-    rooms[data.room].players = players;
-
+  
+    rooms[data.room].players = cleanPlayersArray;
+  
     turn = 0;
-
+    io.in(data.room).emit("update_players", cleanPlayersArray);
 
     io.to(turnOrder[turn].id).emit("your_turn");
     io.in(data.room).emit("set_turn", turnOrder[turn].id);

@@ -18,6 +18,8 @@ const App = () => {
   const [userName, setUserName] = useState("");
   const [typedUserName, setTypedUserName] = useState("");
 
+  const [playerId, setPlayerId] = useState();
+
   const [roomNumber, setRoomNumber] = useState("");
   const [typedRoomNumber, setTypedRoomNumber] = useState("1");
 
@@ -68,12 +70,16 @@ const App = () => {
     socket.on("recieve_room", (room) => {
       setRoomNumber(room);
     });
+
+    socket.on("recieve_id", (id) => {
+      setPlayerId(id);
+    });
   }, [socket]);
 
   return (
     <StyledWrapper>
       {userName && roomNumber ? (
-        <Game room={roomNumber} name={userName} />
+        <Game room={roomNumber} name={userName} playerId={playerId} />
       ) : (
         <StyledContainer>
           vad heter du?

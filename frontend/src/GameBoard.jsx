@@ -30,11 +30,13 @@ const StyledContainer = styled.div`
   gap: 4px;
 `;
 
-const GameBoard = ({ players, turnId }) => {
+const GameBoard = ({ players, turnId, playerId }) => {
   return (
     <StyledWrapper>
       {players.map((player) => {
         const hasTurn = player.id === turnId;
+
+        const playerCard = player.id === playerId ? player.card : "";
 
         return (
           <StyledContainer>
@@ -43,7 +45,7 @@ const GameBoard = ({ players, turnId }) => {
             </StyledNameCard>
             <PlayerCard
               alive={player.alive}
-              card={player.card}
+              card={playerCard}
               hasTurn={hasTurn}
               isWinner={player.isWinner}
             />

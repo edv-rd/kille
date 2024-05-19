@@ -22,7 +22,7 @@ const StyledChatContainer = styled(StyledContainer)`
   width: 100%;
 `;
 
-const Game = ({ room, name }) => {
+const Game = ({ room, name, playerId }) => {
   const [chatMessage, setChatMessage] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
 
@@ -118,7 +118,13 @@ const Game = ({ room, name }) => {
       <StyledContainer>
         {gameState == "game" ? (
           <>
-            {players && <GameBoard players={players} turnId={turnId} />}
+            {players && (
+              <GameBoard
+                players={players}
+                turnId={turnId}
+                playerId={playerId}
+              />
+            )}
             <GameControls yourTurn={yourTurn} handleAction={handleAction} />
           </>
         ) : gameState == "end" ? (
