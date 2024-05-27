@@ -8,7 +8,6 @@ const cors = require("cors");
 
 const { rooms } = require("./sharedState"); // Import the shared state
 
-
 const handleAction = require("./game");
 const postChatMessage = require("./utils");
 const deckofcards = require("./cards");
@@ -102,59 +101,54 @@ io.on("connection", (socket) => {
   });
 
   socket.on("start_game", async (data) => {
-    // console.log(`${socket.id} försöker starta spelet`);
-
     postChatMessage(io, data, `${socket.name} försöker starta spelet`);
-
+  
     io.in(data.room).emit("recieve_state", "game");
-
+  
     gameDeck.reset();
     gameDeck.shuffle();
-
-    // const players = await io.sockets.adapter.rooms.get(data.room);
-    const players = await io.in(data.room).fetchSockets();
-
-    const playerIndex = players.findIndex(player => player.id === socket.id);
-    if (playerIndex > -1) {
-        const [player] = players.splice(playerIndex, 1);
-        players.unshift(player);
-    }
-
-    players.forEach((player) => {
-      player.alive = true;
-    });
-
-    let turnOrder = Array.from(players);
-
-
-    const cleanPlayersArray = turnOrder.map(player => ({
-      name: player.name,
-      id: player.id,
-      alive: player.alive,
-      winner: false,
-      card: gameDeck.deal()
-    }));
   
-    cleanPlayersArray.forEach((player) => {
+    const players = await io.in(data.room).fetchSockets();
+  
+ // Set player states and deal cards
+ const cleanPlayersArray = players.map(player => ({
+  name: player.name,
+  id: player.id,
+  alive: true,
+  winner: false,
+  card: gameDeck.deal()
+}));
 
-      io.to(player.id).emit("show_card", {
-        name: player.name,
-        card: player.card,
-        id: player.id,
-      });
-    });
+// Map socket IDs to cards
+const playerCardsMap = cleanPlayersArray.reduce((acc, player) => {
+  acc[player.id] = player.card;
+  return acc;
+}, {});
+
+// Update each socket's card property
+players.forEach(player => {
+  player.card = playerCardsMap[player.id];
+});
+
+// Emit show_card event to each player
+cleanPlayersArray.forEach(player => {
+  io.to(player.id).emit("show_card", {
+    card: player.card,
+    id: player.id
+  });
+});
   
     rooms[data.room].players = cleanPlayersArray;
   
     turn = 0;
     io.in(data.room).emit("update_players", cleanPlayersArray);
-
-    io.to(turnOrder[turn].id).emit("your_turn");
-    io.in(data.room).emit("set_turn", turnOrder[turn].id);
-
-    // console.log(`${turnOrder[turn].name} börjar!`);
-    postChatMessage(io, data, `${turnOrder[turn].name} börjar!`);
+  
+    io.to(cleanPlayersArray[turn].id).emit("your_turn");
+    io.in(data.room).emit("set_turn", cleanPlayersArray[turn].id);
+  
+    postChatMessage(io, data, `${cleanPlayersArray[turn].name} börjar!`);
   });
+  
 });
 
 app.get("/", (req, res) => {

@@ -9,11 +9,11 @@ const StyledWrapper = styled.div`
 
 const StyledCard = styled.div`
   border: ${(props) =>
-    props.isWinner
+    props.is_winner === "true"
       ? "3px solid green"
-      : props.hasTurn
+      : props.hasTurn === "true"
       ? "3px solid red"
-      : !props.alive
+      : props.alive === "false"
       ? "3px solid grey"
       : "3px solid black"};
   border-radius: 5px;
@@ -23,7 +23,7 @@ const StyledCard = styled.div`
   overflow: clip;
   word-wrap: break-word;
   ${(props) =>
-    props.isWinner
+    props.is_winner === "true"
       ? css`
           background-color: green;
         `
@@ -33,10 +33,10 @@ const StyledCard = styled.div`
 const StyledCardText = styled.h1`
   color: ${(props) => (props.alive ? "black" : "grey")};
 `;
-const PlayerCard = ({ card, hasTurn, alive, isWinner }) => {
+const PlayerCard = ({ card, has_turn, alive, is_winner }) => {
   return (
-    <StyledCard alive={alive} hasTurn={hasTurn} isWinner={isWinner}>
-      <StyledCardText alive={alive}>{card.name}</StyledCardText>
+    <StyledCard alive={alive} has_turn={has_turn} is_winner={is_winner}>
+      <StyledCardText alive={alive}>{card ? card.name : " "}</StyledCardText>
     </StyledCard>
   );
 };

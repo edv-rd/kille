@@ -16,9 +16,9 @@ const StyledNameCard = styled.div`
   flex-direction: column;
   align-items: center;
   border: ${(props) =>
-    props.hasTurn
+    props.has_turn === "true"
       ? "2px solid red"
-      : !props.alive
+      : props.alive === "false"
       ? "2px solid grey"
       : "2px solid black"};
   padding: 5px;
@@ -34,20 +34,31 @@ const GameBoard = ({ players, turnId, playerId }) => {
   return (
     <StyledWrapper>
       {players.map((player) => {
-        const hasTurn = player.id === turnId;
+        let has_turn = "false";
+        if (player.id === turnId) {
+          has_turn = "true";
+        }
+        let alive = "false";
+        if (player.alive) {
+          alive = "true";
+        }
+        let is_winner = "false";
+        if (player.is_winner) {
+          is_winner = "true";
+        }
 
-        const playerCard = player.id === playerId ? player.card : "";
-
+        // const playerCard = player.id === playerId ? player.card : "";
+        const playerCard = player.card;
         return (
-          <StyledContainer>
-            <StyledNameCard alive={player.alive} hasTurn={hasTurn}>
+          <StyledContainer key={player.id}>
+            <StyledNameCard alive={alive} has_turn={has_turn}>
               {player.name}
             </StyledNameCard>
             <PlayerCard
-              alive={player.alive}
+              alive={alive}
               card={playerCard}
-              hasTurn={hasTurn}
-              isWinner={player.isWinner}
+              has_turn={has_turn}
+              is_winner={is_winner}
             />
           </StyledContainer>
         );

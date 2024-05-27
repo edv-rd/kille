@@ -21,7 +21,7 @@ const NameList = ({ players }) => {
   return (
     <StyledWrapper>
       {players.map((player) => {
-        return <StyledNameCard>{player.name}</StyledNameCard>;
+        return <StyledNameCard key={player.id}>{player.name}</StyledNameCard>;
       })}
     </StyledWrapper>
   );

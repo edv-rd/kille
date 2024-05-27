@@ -68,7 +68,7 @@ const Game = ({ room, name, playerId }) => {
       setPlayers((prev) => {
         return prev.map((player) => {
           if (player.id === id) {
-            return { ...player, alive: false }; // Update the card value
+            return { ...player, alive: "false" }; // Update the card value
           }
           return player; // Return the unchanged object for other players
         });
@@ -79,17 +79,19 @@ const Game = ({ room, name, playerId }) => {
       setPlayers((prev) => {
         return prev.map((player) => {
           if (player.id === id) {
-            return { ...player, isWinner: true }; // Update the card value
+            return { ...player, is_winner: "true" }; // Update the card value
           }
           return player; // Return the unchanged object for other players
         });
       });
     });
 
-    socket.on("show_card", ({ name, card, id }) => {
+    socket.on("show_card", ({ card, id }) => {
       setPlayers((prev) => {
         return prev.map((player) => {
           if (player.id === id) {
+            console.log(`showing ${card.name}`);
+            console.log(`from ${player.name}`);
             return { ...player, card: card }; // Update the card value
           }
           return player; // Return the unchanged object for other players
@@ -150,7 +152,7 @@ const Game = ({ room, name, playerId }) => {
         </button>
         <StyledChatContainer>
           {chatMessages.map((message) => {
-            return <p key>{message}</p>;
+            return <p key={message}>{message}</p>;
           })}
         </StyledChatContainer>
       </StyledContainer>
