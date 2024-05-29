@@ -1,18 +1,25 @@
 const postChatMessage = require("./utils");
 const { rooms } = require("./sharedState"); // Import the shared state
 
-const handleAction = async (io, socket, data, gameDeck, turn) => {
-  const players = rooms[data.room].players; 
-  let playersArray = Array.from(players);
+const handleAction = async (io, socket, data, gameDeck) => {
+  let resolvedGameObject = data.gameObject;
+  const turn = resolvedGameObject.turn;
+  const players = resolvedGameObject.players; 
 
-  let turnOrder = Array.from(players);
-  let nextPlayer = turnOrder[turn + 1];
+
+  const player = players[turn];
+  let nextPlayer = players[turn + 1];
+
 
   // Track card ownership history to handle "husu" case
-  const cardHistory = new Map(playersArray.map(player => [player.id, []]));
+  const cardHistory = new Map(players.map(player => [player.id, []]));
 
-  const resolveSwitch = async (player, nextPlayer) => {
-    if (!nextPlayer) {
+  const resolveSwitch = async (gameObject) => {
+    let resolvedGameObject = gameObject;
+    let currentTurn = gameObject.turn;
+    if (currentTurn >= players.length) {
+      console.log(`Current turn ${currentTurn} exceeds player length ${players.length}`);
+      // No next player, draw a new card
       const new_card = gameDeck.deal();
       const resolve = await resolveCard(new_card.name, true, player);
       console.log(`${player.name} dragit nytt kort ${new_card.name}`)
@@ -25,63 +32,44 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
           ? `${player.name} går i lek... och drar ${new_card.name}!`
           : `${player.name} går i lek... och drar ${new_card.name}!`
       );
-      io.to(player.id).emit("recieve_card", new_card);
-      console.log(`emittar till alla i data.room show_card med card: ${player.card.name} och id ${player.id}`)
-
-      io.in(data.room).emit("show_card", {
-        card: player.card,
-        id: player.id,
-      });
+      return resolvedGameObject;
     } else {
-      const resolve = await resolveCard(nextPlayer.card.name, false, player, nextPlayer);
+      let nextPlayer = players[currentTurn+1];
+      if (!nextPlayer || !nextPlayer.card) {
+        console.log(`Next player or card is undefined at turn ${currentTurn}`);
+      } else {
+        const resolve = await resolveCard(nextPlayer.card.name, false, player, nextPlayer);
+        postChatMessage(
+          io,
+          data,
+          resolve
+            ? `${player.name} byter med ${nextPlayer.name}. ${resolve}!`
+            : `${player.name} byter med ${nextPlayer.name}`
+        );
+  
+        if (resolve === "kavall förbi" || resolve === "värdshus förbi") {
+          // Skip to the next player
+          return resolveSwitch(currentTurn + 2);
+        }
+  
+        // Swap cards between player and nextPlayer
+        let temp_card = player.card;
+        console.log(`${player.card.name} blir samma som ${nextPlayer.card.name}`); 
+        player.card = nextPlayer.card;
+        nextPlayer.card = temp_card;
+        console.log(`${nextPlayer.card.name} blir från ${temp_card.name}`); 
+  
+        // Update card history
+        cardHistory.get(player.id).push(temp_card);
+        cardHistory.get(nextPlayer.id).push(player.card);
 
-
-      postChatMessage(
-        io,
-        data,
-        resolve
-          ? `${player.name} byter med ${nextPlayer.name}. ${resolve}!`
-          : `${player.name} byter med ${nextPlayer.name}`
-      );
-
-      if (resolve === "kavall förbi" || resolve === "värdshus förbi") {
-        // Skip to the next player
-        const newNextPlayer = turnOrder[turn + 2] || null;
-        await resolveSwitch(player, newNextPlayer);
-        return;
+        resolvedGameObject.players[currentTurn].card = player.card
+        resolvedGameObject.players[currentTurn+1].card = nextPlayer.card
+  
+        return resolvedGameObject;
       }
-
-      // Swap cards between player and nextPlayer
-      let temp_card = player.card;
-      // console.log(`${temp_card.name} blir`);
-      // console.log( `från ${player.card.name}`); 
-      player.card = nextPlayer.card;
-      console.log(`${player.card.name} blir sammma som ${nextPlayer.card.name}`); 
-      nextPlayer.card = temp_card;
-      console.log(`${nextPlayer.card.name} blir från ${temp_card.name}`); 
-
-      // Emit events to update both players with their new cards
-      io.to(player.id).emit("recieve_card", player.card);
-      io.to(nextPlayer.id).emit("recieve_card", nextPlayer.card);
-      console.log(`emittar till alla i data.room show_card med card: ${player.card.name} och id ${player.id}`)
-
-      // Emit events to show updated cards to the room
-      io.in(data.room).emit("show_card", {
-        id: player.id,
-        card: player.card,
-      });
-      console.log(`emittar till alla i data.room show_card med card: ${nextPlayer.card.name} och id ${nextPlayer.id}`)
-
-      io.in(data.room).emit("show_card", {
-        id: nextPlayer.id,
-        card: nextPlayer.card,
-      });
-
-      // Update card history
-      cardHistory.get(player.id).push(temp_card);
-      cardHistory.get(nextPlayer.id).push(player.card);
     }
-  }
+  };
 
   const resolveCard = async (card, from_deck, player, nextPlayer) => {
     switch (card) {
@@ -93,7 +81,6 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
       case "kuku":
         const winners = await resolveGame(io, data);
         io.in(data.room).emit("recieve_state", "end");
-        turn = 0;
         postChatMessage(io, data, `kuku står! ${winners[0].name} vinner!`);
         return false;
       case "husar":
@@ -127,7 +114,6 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
   };
 
   const resolveGame = async (io, data) => {
-    const players = rooms[data.room].players;
 
     // Filter alive players
     const alivePlayers = players.filter(player => player.alive);
@@ -153,14 +139,14 @@ const handleAction = async (io, socket, data, gameDeck, turn) => {
   switch (data.action) {
     case "hold":
       postChatMessage(io, data, `${socket.name} knackar och håller`);
-      break;
+      io.in(data.room).emit("recieve_game", resolvedGameObject);
+      return resolvedGameObject;
 
     case "change":
-      console.log(`${socket.name} (socket name), `); 
-      console.dir(socket)
-      // console.log(`har kortet ${socket.card}`);
-      await resolveSwitch(socket, nextPlayer);
-      break;
+      tempObject = await resolveSwitch(data.gameObject);
+      console.dir(tempObject);
+      io.in(data.room).emit("recieve_game", tempObject);
+      return tempObject;
   }
 
   if (!nextPlayer) {

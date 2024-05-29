@@ -4,6 +4,8 @@ import PlayerCard from "./components/PlayerCard";
 
 import styled from "styled-components";
 
+import socket from "./utils/socket.js";
+
 const StyledWrapper = styled.div`
   display: flex;
   flex-direction: row;
@@ -30,15 +32,16 @@ const StyledContainer = styled.div`
   gap: 4px;
 `;
 
-const GameBoard = ({ players, turnId, playerId }) => {
+const GameBoard = ({ game, checkHasTurn }) => {
   return (
     <StyledWrapper>
-      {players.map((player) => {
+      {game.players.map((player) => {
         let has_turn = "false";
-        if (player.id === turnId) {
+        if (checkHasTurn == true) {
           has_turn = "true";
         }
         let alive = "false";
+
         if (player.alive) {
           alive = "true";
         }
