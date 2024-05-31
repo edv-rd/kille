@@ -44,7 +44,11 @@ const Game = ({ room, name, playerId }) => {
   }, [socket]);
 
   const checkHasTurn = () => {
-    return socket.id === gameObject.players[gameObject.turn].id;
+    if (gameObject.players[gameObject.turn]) {
+      return socket.id === gameObject.players[gameObject.turn].id;
+    } else {
+      return false;
+    }
   };
 
   return (
@@ -85,7 +89,7 @@ const Game = ({ room, name, playerId }) => {
               <button onClick={startGame}>Start game</button>
             )}
           </StyledContainer>
-          <Chat />
+          <Chat room={room} />
         </>
       )}
     </StyledWrapper>

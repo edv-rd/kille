@@ -12,12 +12,12 @@ const StyledChatContainer = styled(StyledContainer)`
   width: 100%;
 `;
 
-const Chat = () => {
+const Chat = ({ room }) => {
   const [chatMessage, setChatMessage] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
 
   const sendChatMessage = () => {
-    socket.emit("send_message", { message: chatMessage, room, name });
+    socket.emit("send_message", { message: chatMessage, room });
     setChatMessage("");
   };
 
