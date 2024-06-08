@@ -87,6 +87,8 @@ const Game = ({ room, name, playerId }) => {
                     <GameControls
                       yourTurn={isMyTurn()}
                       handleAction={handleAction}
+                      gameState={gameObject.state}
+                      startGame={startGame}
                     />
                   </>
                 )}
@@ -94,7 +96,15 @@ const Game = ({ room, name, playerId }) => {
             ) : gameObject.state == "end" ? (
               <>
                 {players && (
-                  <GameBoard game={gameObject} checkHasTurn={checkHasTurn} />
+                  <>
+                    <GameBoard game={gameObject} checkHasTurn={checkHasTurn} />
+                    <GameControls
+                      yourTurn={isMyTurn()}
+                      handleAction={handleAction}
+                      gameState={gameObject.state}
+                      startGame={startGame}
+                    />
+                  </>
                 )}
 
                 <h1>Game ended!</h1>
