@@ -4,8 +4,6 @@ import PlayerCard from "./components/PlayerCard";
 
 import styled from "styled-components";
 
-import socket from "./utils/socket.js";
-
 const StyledWrapper = styled.div`
   display: flex;
   flex-direction: row;
@@ -36,8 +34,9 @@ const GameBoard = ({ game, checkHasTurn }) => {
   return (
     <StyledWrapper>
       {game.players.map((player) => {
+        const hasTurn = checkHasTurn(player.id);
         let has_turn = "false";
-        if (checkHasTurn == true) {
+        if (hasTurn) {
           has_turn = "true";
         }
         let alive = "false";

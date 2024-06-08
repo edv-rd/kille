@@ -43,7 +43,21 @@ const Game = ({ room, name, playerId }) => {
     });
   }, [socket]);
 
-  const checkHasTurn = () => {
+  const checkHasTurn = (id) => {
+    console.log(`testar om ${gameObject.players[gameObject.turn]} finns `);
+    if (gameObject.players[gameObject.turn]) {
+      console.log(
+        `testar om ${socket.id} är samma som ${
+          gameObject.players[gameObject.turn].id
+        } `
+      );
+      return id === gameObject.players[gameObject.turn].id;
+    } else {
+      return false;
+    }
+  };
+
+  const isMyTurn = () => {
     if (gameObject.players[gameObject.turn]) {
       return socket.id === gameObject.players[gameObject.turn].id;
     } else {
@@ -71,7 +85,7 @@ const Game = ({ room, name, playerId }) => {
                   <>
                     <GameBoard game={gameObject} checkHasTurn={checkHasTurn} />
                     <GameControls
-                      yourTurn={checkHasTurn()}
+                      yourTurn={isMyTurn()}
                       handleAction={handleAction}
                     />
                   </>

@@ -14,9 +14,13 @@ const handleAction = async (io, socket, data, gameDeck) => {
   // Track card ownership history to handle "husu" case
   const cardHistory = new Map(players.map(player => [player.id, []]));
 
-  const resolveSwitch = async (gameObject, modifier) => {
-    let resolvedGameObject = gameObject;
-    let currentTurn = gameObject.turn + modifier;
+  const resolveSwitch = async (modifier) => {
+
+    let currentTurn = resolvedGameObject.turn + modifier;
+
+    console.log(`vad e ${currentTurn}?`);
+
+    console.log(`är ${currentTurn+1} mindre eller lika med än ${players.length}? ${currentTurn+1 >= players.length}`)
 
     if (currentTurn+1 >= players.length) {
       const new_card = gameDeck.deal();
@@ -29,6 +33,9 @@ const handleAction = async (io, socket, data, gameDeck) => {
           ? `${player.name} går i lek... och drar ${new_card.name}!`
           : `${player.name} går i lek... och drar ${new_card.name}!`
       );
+
+      console.log("resolvedGameObject som passas:")
+      console.dir(resolvedGameObject)
 
       await resolveWinner(io, data, resolvedGameObject);
 
@@ -117,8 +124,6 @@ const handleAction = async (io, socket, data, gameDeck) => {
     winningPlayers.sort((a, b) => b.card.value - a.card.value);
     postChatMessage(io, data, `${winningPlayers[0].name} vinner med ${winningPlayers[0].card.name}!`);
 
-
-
     resolvedGameObject.state = "end";
     io.in(data.room).emit("recieve_game", gameObject);
   };
@@ -131,9 +136,9 @@ const handleAction = async (io, socket, data, gameDeck) => {
       return resolvedGameObject;
 
     case "change":
-      tempObject = await resolveSwitch(data.gameObject);
-      io.in(data.room).emit("recieve_game", tempObject);
-      return tempObject;
+      await resolveSwitch(0);
+      io.in(data.room).emit("recieve_game", resolvedGameObject);
+      return resolvedGameObject;
   }
 
   if (!nextPlayer) {
