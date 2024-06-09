@@ -11,7 +11,7 @@ const StyledCard = styled.div`
   border: ${(props) =>
     props.is_winner === "true"
       ? "3px solid green"
-      : props.hasTurn === "true"
+      : props.has_turn === "true"
       ? "3px solid red"
       : props.alive === "false"
       ? "3px solid grey"
@@ -25,7 +25,7 @@ const StyledCard = styled.div`
   ${(props) =>
     props.is_winner === "true"
       ? css`
-          background-color: green;
+          background-color: #48e40567;
         `
       : ""}
 `;

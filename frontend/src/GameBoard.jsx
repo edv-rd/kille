@@ -4,6 +4,8 @@ import PlayerCard from "./components/PlayerCard";
 
 import styled from "styled-components";
 
+import socket from "./utils/socket";
+
 const StyledWrapper = styled.div`
   display: flex;
   flex-direction: row;
@@ -49,8 +51,12 @@ const GameBoard = ({ game, checkHasTurn }) => {
           is_winner = "true";
         }
 
-        // const playerCard = player.id === playerId ? player.card : "";
-        const playerCard = player.card;
+        const playerCard =
+          game.state === "end"
+            ? player.card
+            : player.id === socket.id
+            ? player.card
+            : "";
         return (
           <StyledContainer key={player.id}>
             <StyledNameCard alive={alive} has_turn={has_turn}>
