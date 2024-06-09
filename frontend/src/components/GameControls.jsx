@@ -1,7 +1,6 @@
 import React from "react";
 
 import styled from "styled-components";
-import socket from "../utils/socket";
 
 const StyledWrapper = styled.div`
   display: flex;
@@ -14,7 +13,6 @@ const StyledButton = styled.button`
 `;
 
 const GameControls = ({ yourTurn, handleAction, gameState, startGame }) => {
-  console.log(`vad är ${gameState} egentligen`);
   return (
     <StyledWrapper>
       <StyledButton disabled={!yourTurn} onClick={() => handleAction("hold")}>

@@ -44,13 +44,7 @@ const Game = ({ room, name, playerId }) => {
   }, [socket]);
 
   const checkHasTurn = (id) => {
-    console.log(`testar om ${gameObject.players[gameObject.turn]} finns `);
     if (gameObject.players[gameObject.turn]) {
-      console.log(
-        `testar om ${socket.id} är samma som ${
-          gameObject.players[gameObject.turn].id
-        } `
-      );
       return id === gameObject.players[gameObject.turn].id;
     } else {
       return false;

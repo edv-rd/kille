@@ -18,10 +18,6 @@ const handleAction = async (io, socket, data, gameDeck) => {
 
     let currentTurn = resolvedGameObject.turn + modifier;
 
-    console.log(`vad e ${currentTurn}?`);
-
-    console.log(`är ${currentTurn+1} mindre eller lika med än ${players.length}? ${currentTurn+1 >= players.length}`)
-
     if (currentTurn+1 >= players.length) {
       const new_card = gameDeck.deal();
       const resolve = await resolveCard(new_card.name, true, player);
@@ -34,8 +30,6 @@ const handleAction = async (io, socket, data, gameDeck) => {
           : `${player.name} går i lek... och drar ${new_card.name}!`
       );
 
-      console.log("resolvedGameObject som passas:")
-      console.dir(resolvedGameObject)
 
       await resolveWinner(io, data, resolvedGameObject);
 
@@ -95,8 +89,8 @@ const handleAction = async (io, socket, data, gameDeck) => {
         io.in(data.room).emit("set_unalive", socket.id);
         return "husar ger hugg";
       case "husu":
-        postChatMessage(io, data, "svinhugg går igen");
         if (nextPlayer) {
+          postChatMessage(io, data, "svinhugg går igen");
           const history = cardHistory.get(nextPlayer.id);
           if (history.length > 0) {
             const originalCard = history.shift();
@@ -118,7 +112,6 @@ const handleAction = async (io, socket, data, gameDeck) => {
 
   const resolveWinner = async (io, data, gameObject) => {
     let resolvedGameObject = gameObject;
-    console.log("resolving winner");
 
     const winningPlayers = gameObject.players.filter(player => player.alive);
     winningPlayers.sort((a, b) => b.card.value - a.card.value);
@@ -132,6 +125,9 @@ const handleAction = async (io, socket, data, gameDeck) => {
   switch (data.action) {
     case "hold":
       postChatMessage(io, data, `${socket.name} knackar och håller`);
+      if (resolvedGameObject.turn+1 >= resolvedGameObject.players.length) {
+        await resolveWinner(io, data, resolvedGameObject);
+      }
       io.in(data.room).emit("recieve_game", resolvedGameObject);
       return resolvedGameObject;
 

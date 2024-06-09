@@ -90,7 +90,6 @@ io.on("connection", (socket) => {
 
     postChatMessage(io, data, `${socket.name} joinade ${data.room}`);
 
-    
     io.to(socket.id).emit("recieve_room", data.room);
   });
 
@@ -116,13 +115,12 @@ io.on("connection", (socket) => {
 
     gameObject.state = "game";
   
-  
     gameDeck.reset();
     gameDeck.shuffle();
   
     gameObject.players.forEach((player) => {
       player.card = gameDeck.deal();
-      console.log(`Player (${player.name}) received card: ${player.card.name}`);
+      // console.log(`Player (${player.name}) received card: ${player.card.name}`);
     })
 
     gameObject.turn = 0;
