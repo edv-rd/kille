@@ -37,6 +37,11 @@ const GameBoard = ({ game, checkHasTurn }) => {
     <StyledWrapper>
       {game.players.map((player) => {
         const hasTurn = checkHasTurn(player.id);
+
+        // fått för mig att man måste göra detta
+        // pga styled-components och booleans
+        // idk!
+
         let has_turn = "false";
         if (hasTurn) {
           has_turn = "true";

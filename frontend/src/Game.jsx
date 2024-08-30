@@ -22,8 +22,6 @@ const StyledContainer = styled.div`
 const Game = ({ room, name, playerId }) => {
   const [gameObject, setGameObject] = useState({});
 
-  const [players, setPlayers] = useState([]);
-
   const handleAction = (action) => {
     socket.emit("handle_action", { room, action, gameObject });
   };
@@ -38,7 +36,7 @@ const Game = ({ room, name, playerId }) => {
 
   useEffect(() => {
     socket.on("recieve_game", (game) => {
-      console.log("recieve_game", game);
+      //console.log("recieve_game", game);
       setGameObject(game);
     });
   }, [socket]);
@@ -89,7 +87,7 @@ const Game = ({ room, name, playerId }) => {
               </>
             ) : gameObject.state == "end" ? (
               <>
-                {players && (
+                {gameObject.players && (
                   <>
                     <GameBoard game={gameObject} checkHasTurn={checkHasTurn} />
                     <GameControls
