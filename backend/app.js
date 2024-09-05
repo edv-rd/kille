@@ -8,9 +8,11 @@ const cors = require("cors");
 
 const { rooms } = require("./sharedState"); // Import the shared state
 
+const Deck = require("./Deck");
+const GameManager = require("./GameManager");
+
 const handleAction = require("./game");
 const postChatMessage = require("./utils");
-const deckofcards = require("./cards");
 
 app.use(cors());
 
@@ -23,80 +25,49 @@ const io = new Server(server, {
   },
 });
 
-
-class Deck {
-  constructor() {
-    this.deck = [];
-    this.reset();
-    this.shuffle();
-  }
-
-  reset() {
-    this.deck = [];
-    deckofcards.forEach((card) => {
-      this.deck.push(card);
-    });
-  }
-
-  shuffle() {
-    let numberOfCards = this.deck.length;
-    for (let i = 0; i < numberOfCards; i++) {
-      let j = Math.floor(Math.random() * numberOfCards);
-      let tmp = this.deck[i];
-      this.deck[i] = this.deck[j];
-      this.deck[j] = tmp;
-    }
-  }
-
-  deal() {
-    return this.deck.pop();
-  }
-}
-
-const gameDeck = new Deck();
-
-let gameObject = {
-  players: [],
-  id: 0, 
-  state: "lobby",
-  turn: 0,
-}
-
 io.on("connection", (socket) => {
   // console.log(`någon connectade: ${socket.id}`);
-  
   io.to(socket.id).emit("server_id", socket.id);
   io.to(socket.id).emit("recieve_id", socket.id);
-  let alive = true;
-  socket.alive = alive; // ?
 
   socket.on("join_room", async (data) => {
     socket.join(data.room);
+    const room = data.room;
 
-    const players = await io.in(data.room).fetchSockets();
-
-    playersArray = [];
-
-    for (const player of players) {
-      playersArray.push({ name: player.name, card: "", id: player.id, alive: true, winner: false });
+    if (!rooms[room]) {
+      const deck = new Deck();
+      rooms[room] = new GameManager(room, deck, io);
     }
 
-    gameObject.players = playersArray;
-    gameObject.id = data.room.id;
+    const gameManager = rooms[room];
 
+    // Add player to the game
+    gameManager.addPlayer({
+      name: socket.name,
+      card: "",
+      id: socket.id,
+      alive: true,
+      winner: false,
+    });
 
-    io.in(data.room).emit("recieve_game", gameObject);
-    rooms[data.room] = { players: gameObject.players };
+    
 
-    postChatMessage(io, data, `${socket.name} joinade ${data.room}`);
-
-    io.to(socket.id).emit("recieve_room", data.room);
+    postChatMessage(io, data, `${socket.name} joinade ${room}`);
+    io.to(socket.id).emit("recieve_room", room);
+    gameManager.updateFrontend();
   });
 
   socket.on("handle_action", async (data) => {
-    const resolvedGameObject = await handleAction(io, socket, data, gameDeck);
-    resolvedGameObject.turn++;
-    io.in(data.room).emit("recieve_game", resolvedGameObject);
+    const gameManager = rooms[data.room];
+    await handleAction(
+      io,
+      socket,
+      data,
+      gameManager
+    );
+    
+    gameManager.nextTurn();
+    gameManager.updateFrontend();
   });
 
   socket.on("send_message", (data) => {
@@ -111,27 +82,24 @@ io.on("connection", (socket) => {
   });
 
   socket.on("start_game", async (data) => {
+    const gameManager = rooms[data.room];
+
     postChatMessage(io, data, `${socket.name} försöker starta spelet`);
 
-    gameObject.state = "game";
-  
-    gameDeck.reset();
-    gameDeck.shuffle();
-  
-    gameObject.players.forEach((player) => {
-      player.card = gameDeck.deal();
-      // console.log(`Player (${player.name}) received card: ${player.card.name}`);
-    })
+    gameManager.setGameState("game");
+    gameManager.resetDeck();
+    gameManager.dealCards();
 
-    gameObject.turn = 0;
-    io.to(gameObject.players[gameObject.turn]).emit("your_turn");
-    io.in(data.room).emit("set_turn", gameObject.players[gameObject.turn].id);
-    
-    io.in(data.room).emit("recieve_game", gameObject);
-  
-    postChatMessage(io, data, `${gameObject.players[gameObject.turn].name} börjar!`);
+    const { players } = gameManager.getGameState();
+    const startingPlayer = players[0]
+
+
+    io.to(startingPlayer).emit("your_turn");
+    io.in(data.room).emit("set_turn", startingPlayer);
+    postChatMessage(io, data, `${startingPlayer.name} börjar!`);
+    gameManager.updateFrontend();
+
   });
-  
 });
 
 app.get("/", (req, res) => {
