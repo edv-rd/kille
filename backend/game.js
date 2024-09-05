@@ -3,20 +3,22 @@ const postChatMessage = require("./utils");
 const handleAction = async (io, socket, data, gameManager) => {
   switch (data.action) {
     case "hold":
-      await handleHold(io, socket, data, gameManager);
+      await handleHold(io, data, gameManager);
       break;
     case "change":
-      await handleChange(io, socket, data, gameManager);
+      await handleChange(io, data, gameManager);
       break;
     default:
       console.error("Unknown action:", data.action);
   }
 };
 
-const handleHold = async (io, socket, data, gameManager) => {
-  postChatMessage(io, data, `${socket.name} knackar och håller`);
-
+const handleHold = async (io, data, gameManager) => {
+  const player = gameManager.getCurrentPlayer();
   const nextPlayer = gameManager.getNextPlayer();
+  
+  postChatMessage(io, data, `${player.name} knackar och håller`);
+
 
   if (!nextPlayer) {
     await determineWinner(io, data, gameManager);
@@ -26,11 +28,9 @@ const handleHold = async (io, socket, data, gameManager) => {
   }
 };
 
-const handleChange = async (io, socket, data, gameManager) => {
-  await resolveSwitch(io, data, gameManager);
-};
 
-const resolveSwitch = async (io, data, gameManager) => {
+
+const handleChange = async (io, data, gameManager) => {
   const player = gameManager.getCurrentPlayer();
 
   const nextPlayer = gameManager.getNextPlayer();
@@ -44,8 +44,8 @@ const resolveSwitch = async (io, data, gameManager) => {
       io,
       data,
       resolve
-        ? `${player.name} går i lek... och drar ${newCard.name}! ${resolve}!`
-        : `${player.name} går i lek... och drar ${newCard.name}!`
+        ? `${player.name} går i lek... och drar ${card.name}! ${resolve}!`
+        : `${player.name} går i lek... och drar ${card.name}!`
     );
     await determineWinner(io, data, gameManager);
   } else {
@@ -77,7 +77,7 @@ const resolveSwitch = async (io, data, gameManager) => {
       gameManager.updateCardHistory(nextPlayer.id, player.card);
 
       gameManager.updatePlayerCard(player.id, player.card);
-      gameManager.updatePlayerCard(nextPlayer.id + 1, nextPlayer.card);
+      gameManager.updatePlayerCard(nextPlayer.id, nextPlayer.card);
     }
   }
 };

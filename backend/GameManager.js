@@ -26,9 +26,10 @@ class GameManager {
     return this.cardHistory.get(playerId) || [];
   }
 
-  updatePlayerCard(playerIndex, card) {
-    if (this.players[playerIndex]) {
-      this.players[playerIndex].card = card;
+  updatePlayerCard(playerId, card) {
+    const player = this.players.find(p => p.id === playerId);
+    if (player) {
+      player.card = card;
     }
   }
 
@@ -66,6 +67,21 @@ class GameManager {
       state: this.state,
       turn: this.turn,
     };
+  }
+
+  resetGame() {
+    this.turn = 0;
+    this.state = "lobby"; // or "lobby" depending on the desired behavior
+    this.resetDeck(); // Reset and shuffle the deck
+    this.dealCards(); // Deal new cards to all players
+
+    // Clear the card history for each player
+    this.cardHistory.forEach((_, playerId) => {
+      this.cardHistory.set(playerId, []);
+    });
+
+    // Update the frontend with the new game state
+    this.updateFrontend();
   }
 
   updateFrontend() {

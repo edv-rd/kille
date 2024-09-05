@@ -84,6 +84,8 @@ io.on("connection", (socket) => {
   socket.on("start_game", async (data) => {
     const gameManager = rooms[data.room];
 
+    gameManager.resetGame();
+
     postChatMessage(io, data, `${socket.name} försöker starta spelet`);
 
     gameManager.setGameState("game");
