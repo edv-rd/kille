@@ -19,7 +19,7 @@ const StyledContainer = styled.div`
   width: 50%;
 `;
 
-const Game = ({ room, name, playerId }) => {
+const Game = ({ room, name }) => {
   const [gameObject, setGameObject] = useState({});
 
   const handleAction = (action) => {
@@ -36,7 +36,7 @@ const Game = ({ room, name, playerId }) => {
 
   useEffect(() => {
     socket.on("recieve_game", (game) => {
-      //console.log("recieve_game", game);
+      console.log("recieve_game");
       setGameObject(game);
     });
   }, [socket]);

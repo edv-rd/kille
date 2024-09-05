@@ -36,7 +36,7 @@ io.on("connection", (socket) => {
 
     if (!rooms[room]) {
       const deck = new Deck();
-      rooms[room] = new GameManager(room, deck);
+      rooms[room] = new GameManager(room, deck, io);
     }
 
     const gameManager = rooms[room];
@@ -50,22 +50,24 @@ io.on("connection", (socket) => {
       winner: false,
     });
 
-    io.in(room).emit("recieve_game", gameManager.getGameState());
+    
 
     postChatMessage(io, data, `${socket.name} joinade ${room}`);
     io.to(socket.id).emit("recieve_room", room);
+    gameManager.updateFrontend();
   });
 
   socket.on("handle_action", async (data) => {
     const gameManager = rooms[data.room];
-    const resolvedGameObject = await handleAction(
+    await handleAction(
       io,
       socket,
       data,
-      gameManager.deck
+      gameManager
     );
+    
     gameManager.nextTurn();
-    io.in(data.room).emit("recieve_game", resolvedGameObject);
+    gameManager.updateFrontend();
   });
 
   socket.on("send_message", (data) => {
@@ -88,11 +90,15 @@ io.on("connection", (socket) => {
     gameManager.resetDeck();
     gameManager.dealCards();
 
-    io.to(gameManager.getCurrentPlayer().id).emit("your_turn");
-    io.in(data.room).emit("set_turn", gameManager.getCurrentPlayer().id);
-    io.in(data.room).emit("recieve_game", gameManager.getGameState());
+    const { players } = gameManager.getGameState();
+    const startingPlayer = players[0]
 
-    postChatMessage(io, data, `${gameManager.getCurrentPlayer().name} börjar!`);
+
+    io.to(startingPlayer).emit("your_turn");
+    io.in(data.room).emit("set_turn", startingPlayer);
+    postChatMessage(io, data, `${startingPlayer.name} börjar!`);
+    gameManager.updateFrontend();
+
   });
 });
 
