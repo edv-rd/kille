@@ -48,12 +48,11 @@ class GameManager {
     return this.players[this.turn];
   }
 
-  getNextPlayer() {
-    return this.players[this.turn + 1] || false;
+  getNextPlayer(modifier=1) {
+    return this.players[this.turn + modifier] || false;
   }
 
   nextTurn() {
-
     this.turn = this.turn + 1 || false;
   }
 

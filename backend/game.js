@@ -1,24 +1,23 @@
 const postChatMessage = require("./utils");
 
 const handleAction = async (io, socket, data, gameManager) => {
+  const player = gameManager.getCurrentPlayer();
+
+  const nextPlayer = gameManager.getNextPlayer();
   switch (data.action) {
     case "hold":
-      await handleHold(io, data, gameManager);
+      await handleHold(io, data, gameManager, player, nextPlayer);
       break;
     case "change":
-      await handleChange(io, data, gameManager);
+      await handleChange(io, data, gameManager, player, nextPlayer);
       break;
     default:
       console.error("Unknown action:", data.action);
   }
 };
 
-const handleHold = async (io, data, gameManager) => {
-  const player = gameManager.getCurrentPlayer();
-  const nextPlayer = gameManager.getNextPlayer();
-  
+const handleHold = async (io, data, gameManager, player, nextPlayer) => {
   postChatMessage(io, data, `${player.name} knackar och håller`);
-
 
   if (!nextPlayer) {
     await determineWinner(io, data, gameManager);
@@ -28,17 +27,11 @@ const handleHold = async (io, data, gameManager) => {
   }
 };
 
-
-
-const handleChange = async (io, data, gameManager) => {
-  const player = gameManager.getCurrentPlayer();
-
-  const nextPlayer = gameManager.getNextPlayer();
-
+const handleChange = async (io, data, gameManager, player, nextPlayer) => {
   if (!nextPlayer) {
     const card = gameManager.deck.deal();
     gameManager.updatePlayerCard(player.id, card);
-    const resolve = await resolveCard(io, data, gameManager, card);
+    const resolve = await resolveCard(io, data, gameManager, card, true);
 
     postChatMessage(
       io,
@@ -52,7 +45,13 @@ const handleChange = async (io, data, gameManager) => {
     if (!nextPlayer || !nextPlayer.card) {
       console.log(`Next player or card is undefined at turn ${currentTurn}`);
     } else {
-      const resolve = await resolveCard(io, data, gameManager, nextPlayer.card);
+      const resolve = await resolveCard(
+        io,
+        data,
+        gameManager,
+        nextPlayer.card,
+        false
+      );
 
       postChatMessage(
         io,
@@ -61,11 +60,6 @@ const handleChange = async (io, data, gameManager) => {
           ? `${player.name} byter med ${nextPlayer.name}. ${resolve}!`
           : `${player.name} byter med ${nextPlayer.name}`
       );
-
-      if (resolve === "kavall förbi" || resolve === "värdshus förbi") {
-        // Skip to the next player
-        return resolveSwitch(io, data, gameManager);
-      }
 
       // Swap cards between player and nextPlayer
       let tempCard = player.card;
@@ -82,9 +76,10 @@ const handleChange = async (io, data, gameManager) => {
   }
 };
 
-const resolveCard = async (io, data, gameManager, card) => {
+const resolveCard = async (io, data, gameManager, card, fromDeck) => {
   const player = gameManager.getCurrentPlayer();
   const nextPlayer = gameManager.getNextPlayer();
+  const secondNextPlayer = gameManager.getNextPlayer(2);
 
   switch (card) {
     case "harlekin":
@@ -112,9 +107,16 @@ const resolveCard = async (io, data, gameManager, card) => {
       return "svinhugg går igen";
     case "kavall":
       if (fromDeck) return false;
+
+      if (!secondNextPlayer) {
+        await handleChange(io, data, gameManager, player, secondNextPlayer);
+      }
       return "kavall förbi";
     case "vardshus":
       if (fromDeck) return false;
+      if (!secondNextPlayer) {
+        await handleChange(io, data, gameManager, player, secondNextPlayer);
+      }
       return "värdshus förbi";
     default:
       return false;
