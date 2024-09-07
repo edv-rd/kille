@@ -19,7 +19,7 @@ const StyledContainer = styled.div`
   width: 50%;
 `;
 
-const Game = ({ room, name }) => {
+const Game = ({ room, name, testScenario }) => {
   const [gameObject, setGameObject] = useState({});
 
   const handleAction = (action) => {

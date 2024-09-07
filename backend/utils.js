@@ -8,9 +8,14 @@ const formatTime = (date) =>
 
 const postChatMessage = (io, data, message) => {
   const timestamp = new Date();
+  const messageObject = {
+    time: timestamp,
+    text: `[${formatTime(timestamp)}]: ${message}`,
+    key: Math.random().toString(16).slice(2)
+  }
   io.in(data.room).emit(
     "recieve_message",
-    `[${formatTime(timestamp)}]: ${message}`
+    messageObject
   );
 };
 

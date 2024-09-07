@@ -56,12 +56,11 @@ const GameBoard = ({ game, checkHasTurn }) => {
           is_winner = "true";
         }
 
-        const playerCard =
-          game.state === "end"
-            ? player.card
-            : player.id === socket.id
-            ? player.card
-            : "";
+        const playerCard = player.card.shown
+          ? player.card
+          : player.id === socket.id
+          ? player.card
+          : "";
         return (
           <StyledContainer key={player.id}>
             <StyledNameCard alive={alive} has_turn={has_turn}>

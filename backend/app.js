@@ -57,6 +57,8 @@ io.on("connection", (socket) => {
     gameManager.updateFrontend();
   });
 
+
+
   socket.on("handle_action", async (data) => {
     const gameManager = rooms[data.room];
     await handleAction(
@@ -84,6 +86,8 @@ io.on("connection", (socket) => {
   socket.on("start_game", async (data) => {
     const gameManager = rooms[data.room];
 
+    gameManager.resetGame();
+
     postChatMessage(io, data, `${socket.name} försöker starta spelet`);
 
     gameManager.setGameState("game");
@@ -101,6 +105,8 @@ io.on("connection", (socket) => {
 
   });
 });
+
+
 
 app.get("/", (req, res) => {
   res.send("kille!");
