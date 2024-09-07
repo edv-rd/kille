@@ -15,12 +15,22 @@ const StyledButton = styled.button`
 const GameControls = ({ yourTurn, handleAction, gameState, startGame }) => {
   return (
     <StyledWrapper>
-      <StyledButton disabled={!yourTurn} onClick={() => handleAction("hold")}>
-        Hold
-      </StyledButton>
-      <StyledButton disabled={!yourTurn} onClick={() => handleAction("change")}>
-        Change
-      </StyledButton>
+      {gameState === "game" && (
+        <>
+          <StyledButton
+            disabled={!yourTurn}
+            onClick={() => handleAction("hold")}
+          >
+            Hold
+          </StyledButton>
+          <StyledButton
+            disabled={!yourTurn}
+            onClick={() => handleAction("change")}
+          >
+            Change
+          </StyledButton>
+        </>
+      )}
       {gameState === "end" && (
         <StyledButton onClick={() => startGame()}>Start new game!</StyledButton>
       )}

@@ -23,6 +23,8 @@ const App = () => {
   const [roomNumber, setRoomNumber] = useState("");
   const [typedRoomNumber, setTypedRoomNumber] = useState("1");
 
+  const [testScenario, setTestScenario] = useState(false);
+
   const handleJoin = () => {
     {
       typedRoomNumber ? setRoomNumber(typedRoomNumber) : setRoomNumber("1");

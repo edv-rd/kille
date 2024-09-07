@@ -85,6 +85,7 @@ class GameManager {
 
   updateFrontend() {
     const gameState = this.getGameState();
+
     this.io.in(this.roomId).emit("recieve_game", gameState);
   }
 }

@@ -57,6 +57,8 @@ io.on("connection", (socket) => {
     gameManager.updateFrontend();
   });
 
+
+
   socket.on("handle_action", async (data) => {
     const gameManager = rooms[data.room];
     await handleAction(
@@ -103,6 +105,8 @@ io.on("connection", (socket) => {
 
   });
 });
+
+
 
 app.get("/", (req, res) => {
   res.send("kille!");

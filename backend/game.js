@@ -1,4 +1,5 @@
 const postChatMessage = require("./utils");
+const skipSwapCards = ["kuku", "kavall", "husar", "husu", "vardshus"];
 
 const handleAction = async (io, socket, data, gameManager) => {
   const player = gameManager.getCurrentPlayer();
@@ -30,8 +31,11 @@ const handleHold = async (io, data, gameManager, player, nextPlayer) => {
 const handleChange = async (io, data, gameManager, player, nextPlayer) => {
   if (!nextPlayer) {
     const card = gameManager.deck.deal();
-    gameManager.updatePlayerCard(player.id, card);
     const resolve = await resolveCard(io, data, gameManager, card, true);
+
+    if (!skipSwapCards.includes(resolve)) {
+      gameManager.updatePlayerCard(player.id, card);
+    }
 
     postChatMessage(
       io,
@@ -61,17 +65,20 @@ const handleChange = async (io, data, gameManager, player, nextPlayer) => {
           : `${player.name} byter med ${nextPlayer.name}`
       );
 
-      // Swap cards between player and nextPlayer
-      let tempCard = player.card;
-      player.card = nextPlayer.card;
-      nextPlayer.card = tempCard;
+      // Check if resolve matches any of the skip swap cards
+      if (!skipSwapCards.includes(resolve)) {
+        // Swap cards between player and nextPlayer
+        let tempCard = player.card;
+        player.card = nextPlayer.card;
+        nextPlayer.card = tempCard;
 
-      // Update card history in gameManager
-      gameManager.updateCardHistory(player.id, tempCard);
-      gameManager.updateCardHistory(nextPlayer.id, player.card);
+        // Update card history in gameManager
+        gameManager.updateCardHistory(player.id, tempCard);
+        gameManager.updateCardHistory(nextPlayer.id, player.card);
 
-      gameManager.updatePlayerCard(player.id, player.card);
-      gameManager.updatePlayerCard(nextPlayer.id, nextPlayer.card);
+        gameManager.updatePlayerCard(player.id, player.card);
+        gameManager.updatePlayerCard(nextPlayer.id, nextPlayer.card);
+      }
     }
   }
 };
@@ -81,7 +88,7 @@ const resolveCard = async (io, data, gameManager, card, fromDeck) => {
   const nextPlayer = gameManager.getNextPlayer();
   const secondNextPlayer = gameManager.getNextPlayer(2);
 
-  switch (card) {
+  switch (card.name) {
     case "harlekin":
       if (!fromDeck) {
         card.value = 0;
@@ -90,34 +97,42 @@ const resolveCard = async (io, data, gameManager, card, fromDeck) => {
     case "kuku":
       postChatMessage(io, data, `kuku står!`);
       await determineWinner(io, data, gameManager);
-      return false;
+      return "kuku";
     case "husar":
+      postChatMessage(io, data, `husar ger hugg!`);
+
       player.alive = false;
       // Handle "husar" logic here
-      return "husar ger hugg";
+      return "husar";
     case "husu":
+      postChatMessage(io, data, `svinhugg går igen!`);
+
       if (nextPlayer) {
-        postChatMessage(io, data, "svinhugg går igen");
         const history = gameManager.getCardHistory(nextPlayer.id);
+
         if (history.length > 0) {
           const originalCard = history.shift();
           nextPlayer.card = originalCard;
         }
       }
-      return "svinhugg går igen";
+      return "husu";
     case "kavall":
       if (fromDeck) return false;
+
+      postChatMessage(io, data, `kavall förbi!`);
 
       if (!secondNextPlayer) {
         await handleChange(io, data, gameManager, player, secondNextPlayer);
       }
-      return "kavall förbi";
+      return "kavall";
     case "vardshus":
       if (fromDeck) return false;
+      postChatMessage(io, data, `värdshus förbi!`);
+
       if (!secondNextPlayer) {
         await handleChange(io, data, gameManager, player, secondNextPlayer);
       }
-      return "värdshus förbi";
+      return "vardshus";
     default:
       return false;
   }
