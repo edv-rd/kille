@@ -35,12 +35,6 @@ const handleChange = async (io, data, gameManager, player, nextPlayer) => {
     const card = gameManager.deck.deal();
     const resolve = await resolveCard(io, data, gameManager, card, true);
 
-    console.log(
-      `checking skipSwapCardsFromDeck ${skipSwapCardsFromDeck} and card.name ${
-        card.name
-      } ${!skipSwapCardsFromDeck.includes(card.name)}`
-    );
-
     if (!skipSwapCardsFromDeck.includes(card.name)) {
       gameManager.updatePlayerCard(player.id, card);
     }
@@ -72,11 +66,7 @@ const handleChange = async (io, data, gameManager, player, nextPlayer) => {
           ? `${player.name} byter med ${nextPlayer.name}. ${resolve}!`
           : `${player.name} byter med ${nextPlayer.name}`
       );
-      console.log(
-        `checking skipSwapCards ${skipSwapCards} and nextPlayer.card.name ${
-          nextPlayer.card.name
-        } ${!skipSwapCards.includes(nextPlayer.card.name)}`
-      );
+
       // Check if resolve matches any of the skip swap cards
       if (!skipSwapCards.includes(nextPlayer.card.name)) {
         // Swap cards between player and nextPlayer
@@ -103,6 +93,7 @@ const resolveCard = async (io, data, gameManager, card, fromDeck) => {
   switch (card.name) {
     case "harlekin":
       if (!fromDeck) {
+        console.log("setting harlekin to 0")
         card.value = 0;
       }
       break;
@@ -157,9 +148,16 @@ const resolveCard = async (io, data, gameManager, card, fromDeck) => {
 
 const determineWinner = async (io, data, gameManager) => {
   const { players } = gameManager.getGameState();
+  console.log(`innan filter: `);
+  console.dir(players);
   const winningPlayers = players.filter((player) => player.alive);
+  console.log(`innan sort: `);
+  console.dir(winningPlayers);
   winningPlayers.sort((a, b) => b.card.value - a.card.value);
+  console.log(`efter sort: `);
+  console.dir(winningPlayers);
 
+  
   players.forEach((p) => {
     p.card.shown = true;
   });
