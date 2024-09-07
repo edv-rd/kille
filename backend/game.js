@@ -1,5 +1,7 @@
 const postChatMessage = require("./utils");
+
 const skipSwapCards = ["kuku", "kavall", "husar", "husu", "vardshus"];
+const skipSwapCardsFromDeck = ["kavall", "husar", "husu", "vardshus"];
 
 const handleAction = async (io, socket, data, gameManager) => {
   const player = gameManager.getCurrentPlayer();
@@ -33,7 +35,13 @@ const handleChange = async (io, data, gameManager, player, nextPlayer) => {
     const card = gameManager.deck.deal();
     const resolve = await resolveCard(io, data, gameManager, card, true);
 
-    if (!skipSwapCards.includes(resolve)) {
+    console.log(
+      `checking skipSwapCardsFromDeck ${skipSwapCardsFromDeck} and card.name ${
+        card.name
+      } ${!skipSwapCardsFromDeck.includes(card.name)}`
+    );
+
+    if (!skipSwapCardsFromDeck.includes(card.name)) {
       gameManager.updatePlayerCard(player.id, card);
     }
 
@@ -64,9 +72,13 @@ const handleChange = async (io, data, gameManager, player, nextPlayer) => {
           ? `${player.name} byter med ${nextPlayer.name}. ${resolve}!`
           : `${player.name} byter med ${nextPlayer.name}`
       );
-
+      console.log(
+        `checking skipSwapCards ${skipSwapCards} and nextPlayer.card.name ${
+          nextPlayer.card.name
+        } ${!skipSwapCards.includes(nextPlayer.card.name)}`
+      );
       // Check if resolve matches any of the skip swap cards
-      if (!skipSwapCards.includes(resolve)) {
+      if (!skipSwapCards.includes(nextPlayer.card.name)) {
         // Swap cards between player and nextPlayer
         let tempCard = player.card;
         player.card = nextPlayer.card;
@@ -97,15 +109,18 @@ const resolveCard = async (io, data, gameManager, card, fromDeck) => {
     case "kuku":
       postChatMessage(io, data, `kuku står!`);
       await determineWinner(io, data, gameManager);
+      card.shown = true;
       return "kuku";
     case "husar":
       postChatMessage(io, data, `husar ger hugg!`);
+      card.shown = true;
 
       player.alive = false;
       // Handle "husar" logic here
       return "husar";
     case "husu":
       postChatMessage(io, data, `svinhugg går igen!`);
+      card.shown = true;
 
       if (nextPlayer) {
         const history = gameManager.getCardHistory(nextPlayer.id);
@@ -120,6 +135,7 @@ const resolveCard = async (io, data, gameManager, card, fromDeck) => {
       if (fromDeck) return false;
 
       postChatMessage(io, data, `kavall förbi!`);
+      card.shown = true;
 
       if (!secondNextPlayer) {
         await handleChange(io, data, gameManager, player, secondNextPlayer);
@@ -128,6 +144,7 @@ const resolveCard = async (io, data, gameManager, card, fromDeck) => {
     case "vardshus":
       if (fromDeck) return false;
       postChatMessage(io, data, `värdshus förbi!`);
+      card.shown = true;
 
       if (!secondNextPlayer) {
         await handleChange(io, data, gameManager, player, secondNextPlayer);
@@ -142,6 +159,10 @@ const determineWinner = async (io, data, gameManager) => {
   const { players } = gameManager.getGameState();
   const winningPlayers = players.filter((player) => player.alive);
   winningPlayers.sort((a, b) => b.card.value - a.card.value);
+
+  players.forEach((p) => {
+    p.card.shown = true;
+  });
 
   postChatMessage(
     io,

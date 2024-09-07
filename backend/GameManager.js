@@ -41,6 +41,7 @@ class GameManager {
   dealCards() {
     this.players.forEach((player) => {
       player.card = this.deck.deal();
+      player.card.shown = false;
     });
   }
 
