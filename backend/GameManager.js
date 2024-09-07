@@ -82,6 +82,11 @@ class GameManager {
     this.resetDeck(); // Reset and shuffle the deck
     this.dealCards(); // Deal new cards to all players
 
+    this.players.forEach((player) => {
+      player.alive = true;
+      player.winner = false;
+    })
+
     // Clear the card history for each player
     this.cardHistory.forEach((_, playerId) => {
       this.cardHistory.set(playerId, []);
