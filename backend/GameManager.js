@@ -33,6 +33,13 @@ class GameManager {
     }
   }
 
+  playerWins(playerId) {
+    const player = this.players.find(p => p.id === playerId);
+    if (player) {
+      player.winner = true;
+    }
+  }
+
   resetDeck() {
     this.deck.reset();
     this.deck.shuffle();

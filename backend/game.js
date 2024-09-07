@@ -157,7 +157,8 @@ const determineWinner = async (io, data, gameManager) => {
   console.log(`efter sort: `);
   console.dir(winningPlayers);
 
-  
+  gameManager.playerWins(winningPlayers[0].id)
+
   players.forEach((p) => {
     p.card.shown = true;
   });
@@ -167,6 +168,8 @@ const determineWinner = async (io, data, gameManager) => {
     data,
     `${winningPlayers[0].name} vinner med ${winningPlayers[0].card.name}!`
   );
+
+
 
   gameManager.setGameState("end");
 };
