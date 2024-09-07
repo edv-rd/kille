@@ -41,7 +41,7 @@ const Chat = ({ room }) => {
       </button>
       <StyledChatContainer>
         {chatMessages.map((message) => {
-          return <p key={message}>{message}</p>;
+          return <p key={message.key}>{message.text}</p>;
         })}
       </StyledChatContainer>
     </StyledContainer>
