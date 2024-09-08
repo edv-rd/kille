@@ -67,14 +67,12 @@ const handleChange = async (io, data, gameManager, player, nextPlayer) => {
           : `${player.name} byter med ${nextPlayer.name}`
       );
 
-      // Check if resolve matches any of the skip swap cards
       if (!skipSwapCards.includes(nextPlayer.card.name)) {
-        // Swap cards between player and nextPlayer
+
         let tempCard = player.card;
         player.card = nextPlayer.card;
         nextPlayer.card = tempCard;
 
-        // Update card history in gameManager
         gameManager.updateCardHistory(player.id, tempCard);
         gameManager.updateCardHistory(nextPlayer.id, player.card);
 
@@ -93,7 +91,7 @@ const resolveCard = async (io, data, gameManager, card, fromDeck) => {
   switch (card.name) {
     case "harlekin":
       if (!fromDeck) {
-        console.log("setting harlekin to 0")
+        console.log("setting harlekin to 0");
         card.value = 0;
       }
       break;
@@ -148,16 +146,11 @@ const resolveCard = async (io, data, gameManager, card, fromDeck) => {
 
 const determineWinner = async (io, data, gameManager) => {
   const { players } = gameManager.getGameState();
-  console.log(`innan filter: `);
-  console.dir(players);
   const winningPlayers = players.filter((player) => player.alive);
-  console.log(`innan sort: `);
-  console.dir(winningPlayers);
-  winningPlayers.sort((a, b) => b.card.value - a.card.value);
-  console.log(`efter sort: `);
-  console.dir(winningPlayers);
 
-  gameManager.playerWins(winningPlayers[0].id)
+  winningPlayers.sort((a, b) => b.card.value - a.card.value);
+
+  gameManager.playerWins(winningPlayers[0].id);
 
   players.forEach((p) => {
     p.card.shown = true;
@@ -168,8 +161,6 @@ const determineWinner = async (io, data, gameManager) => {
     data,
     `${winningPlayers[0].name} vinner med ${winningPlayers[0].card.name}!`
   );
-
-
 
   gameManager.setGameState("end");
 };
