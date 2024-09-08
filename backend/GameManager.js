@@ -33,6 +33,13 @@ class GameManager {
     }
   }
 
+  playerWins(playerId) {
+    const player = this.players.find(p => p.id === playerId);
+    if (player) {
+      player.winner = true;
+    }
+  }
+
   resetDeck() {
     this.deck.reset();
     this.deck.shuffle();
@@ -74,6 +81,11 @@ class GameManager {
     this.state = "lobby"; // or "lobby" depending on the desired behavior
     this.resetDeck(); // Reset and shuffle the deck
     this.dealCards(); // Deal new cards to all players
+
+    this.players.forEach((player) => {
+      player.alive = true;
+      player.winner = false;
+    })
 
     // Clear the card history for each player
     this.cardHistory.forEach((_, playerId) => {

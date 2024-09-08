@@ -52,7 +52,7 @@ const GameBoard = ({ game, checkHasTurn }) => {
           alive = "true";
         }
         let is_winner = "false";
-        if (player.is_winner) {
+        if (player.winner) {
           is_winner = "true";
         }
 
