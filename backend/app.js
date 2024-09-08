@@ -6,7 +6,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
 
-const { rooms } = require("./sharedState"); // Import the shared state
+const { rooms } = require("./sharedState");
 
 const Deck = require("./Deck");
 const GameManager = require("./GameManager");
@@ -26,7 +26,6 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  // console.log(`någon connectade: ${socket.id}`);
   io.to(socket.id).emit("server_id", socket.id);
   io.to(socket.id).emit("recieve_id", socket.id);
 
@@ -41,7 +40,6 @@ io.on("connection", (socket) => {
 
     const gameManager = rooms[room];
 
-    // Add player to the game
     gameManager.addPlayer({
       name: socket.name,
       card: "",
@@ -50,35 +48,24 @@ io.on("connection", (socket) => {
       winner: false,
     });
 
-    
-
     postChatMessage(io, data, `${socket.name} joinade ${room}`);
     io.to(socket.id).emit("recieve_room", room);
     gameManager.updateFrontend();
   });
 
-
-
   socket.on("handle_action", async (data) => {
     const gameManager = rooms[data.room];
-    await handleAction(
-      io,
-      socket,
-      data,
-      gameManager
-    );
-    
+    await handleAction(io, socket, data, gameManager);
+
     gameManager.nextTurn();
     gameManager.updateFrontend();
   });
 
   socket.on("send_message", (data) => {
-    // console.log(`${socket.name} säger: ${data.message}`);
     postChatMessage(io, data, `${socket.name} säger: ${data.message}`);
   });
 
   socket.on("change_name", (data) => {
-    // console.log(`${socket.id} vill byta namn till ${data.name}`);
     socket.name = data.name;
     io.to(socket.id).emit("recieve_name", data.name);
   });
@@ -95,18 +82,14 @@ io.on("connection", (socket) => {
     gameManager.dealCards();
 
     const { players } = gameManager.getGameState();
-    const startingPlayer = players[0]
-
+    const startingPlayer = players[0];
 
     io.to(startingPlayer).emit("your_turn");
     io.in(data.room).emit("set_turn", startingPlayer);
     postChatMessage(io, data, `${startingPlayer.name} börjar!`);
     gameManager.updateFrontend();
-
   });
 });
-
-
 
 app.get("/", (req, res) => {
   res.send("kille!");
