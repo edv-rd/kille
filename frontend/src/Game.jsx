@@ -57,6 +57,10 @@ const Game = ({ room, name, testScenario }) => {
     }
   };
 
+  const startTestSimulation = () => {
+    socket.emit("start_test_simulation", { room });
+  };
+
   return (
     <StyledWrapper>
       {gameObject.players && (
@@ -83,6 +87,9 @@ const Game = ({ room, name, testScenario }) => {
                       startGame={startGame}
                     />
                   </>
+                )}
+                {gameObject.state === "game" && (
+                  <button onClick={startTestSimulation}>Test Simulation</button>
                 )}
               </>
             ) : gameObject.state == "end" ? (

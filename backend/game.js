@@ -111,17 +111,45 @@ const resolveCard = async (io, data, gameManager, card, fromDeck) => {
       postChatMessage(io, data, `svinhugg går igen!`);
       card.shown = true;
 
-      if (nextPlayer) {
-        const history = gameManager.getCardHistory(nextPlayer.id);
-
-        if (history.length > 0) {
-          const originalCard = history.shift();
-          nextPlayer.card = originalCard;
-        }
+      const involvedPlayers = [];
+      let currentPlayer = player;
+      
+      // Collect all players involved in trades, starting from the current player
+      while (true) {
+        const history = gameManager.getCardHistory(currentPlayer.id);
+        if (history.length === 0) break;
+        
+        involvedPlayers.unshift(currentPlayer);
+        const previousCard = history[0];
+        currentPlayer = gameManager.getPlayerByCard(previousCard);
+        
+        if (currentPlayer === player) break; // Full circle, stop
       }
+
+      // Revert cards for involved players
+      for (let i = 0; i < involvedPlayers.length; i++) {
+        const currentPlayer = involvedPlayers[i];
+        const nextPlayer = involvedPlayers[i + 1] || player; // If last player, swap with the husu holder
+
+        const tempCard = currentPlayer.card;
+        currentPlayer.card = nextPlayer.card;
+        nextPlayer.card = tempCard;
+
+        gameManager.updatePlayerCard(currentPlayer.id, currentPlayer.card);
+        gameManager.updatePlayerCard(nextPlayer.id, nextPlayer.card);
+
+        postChatMessage(io, data, `${currentPlayer.name} byter tillbaka med ${nextPlayer.name}.`);
+      }
+
+      // Clear card history for involved players
+      for (const involvedPlayer of involvedPlayers) {
+        gameManager.clearCardHistory(involvedPlayer.id);
+      }
+      gameManager.clearCardHistory(player.id);
+
       return "husu";
     case "kavall":
-      if (fromDeck) return false;
+
 
       postChatMessage(io, data, `kavall förbi!`);
       card.shown = true;
@@ -131,9 +159,10 @@ const resolveCard = async (io, data, gameManager, card, fromDeck) => {
       }
       return "kavall";
     case "vardshus":
-      if (fromDeck) return false;
+
       postChatMessage(io, data, `värdshus förbi!`);
       card.shown = true;
+
 
       if (!secondNextPlayer) {
         await handleChange(io, data, gameManager, player, secondNextPlayer);
